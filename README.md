@@ -20,14 +20,34 @@ Or install it yourself as:
 
 ## Usage
 
-Using `OOXML::Excel` to read spreadsheet:
+### Using `OOXML::Excel` to read spreadsheet:
 ```
 ooxml_excel = OOXML::Excel.new('example.xlsx')
 ```
 
-Fetching all sheets:
+### Fetching all sheets:
 ```
 ooxml_excel.sheets # ['Test Sheet 1', 'Test Sheet 2']
+```
+
+### Accessing Rows and Cells
+```
+sheet = ooxml_excel.sheet('Test Sheet 1')
+
+# Rows
+sheet[0] # Access the first row
+sheet.rows[0] # Same as above
+
+# Cells
+sheet[0].cells # Fetch all cells
+sheet.rows[0].cells # longer way to do it
+
+sheet[0][0] # Access the first cell of the row
+sheet.rows[0].cells[0] # longer way to do it
+
+sheet[0][0].value # Access cell values
+sheet.rows[0].cells[0].value # longer way to do it
+
 ```
 
 ### Iterating to each row:
@@ -92,4 +112,4 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/ooxml_excel.
+Bug reports and pull requests are welcome on GitHub at https://github.com/halcjames/ooxml_excel.
