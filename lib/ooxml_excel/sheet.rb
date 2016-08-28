@@ -2,6 +2,7 @@ module OOXML
   class Excel
     class Sheet
       include OOXML::Helper::List
+      include OOXML::Util
       attr_reader :columns, :data_validations, :shared_strings
       attr_accessor :comments, :styles, :defined_names, :name
 
@@ -17,13 +18,13 @@ module OOXML
         @code_name ||= @xml.xpath('//sheetPr').attribute('codeName').try(:value)
       end
 
-      def data_validation_for_cell(cell_ref)
+      def data_validation(cell_ref)
         data_validations.find { |data_validation| data_validation.sqref_range.include?(cell_ref)}
       end
 
-
       def column(id)
-        columns.select { |column| column.id_range.include?(id)}
+        uniformed_reference = uniform_reference(id)
+        columns.find { |column| column.id_range.include?(uniformed_reference)}
       end
 
       def columns
@@ -42,6 +43,10 @@ module OOXML
         end
       end
 
+      def row(index)
+        rows.find { |row| row.id == index.to_s}
+      end
+
       def rows
         @rows ||= begin
           # TODO: get the value of merged cells
@@ -49,6 +54,18 @@ module OOXML
           @xml.xpath('//sheetData/row').map do |row_node|
             Excel::Sheet::Row.load_from_node(row_node, shared_strings)
           end
+        end
+      end
+
+      def each_row
+        rows.each_with_index do |row, row_index|
+          yield row.cells.map(&:value), row_index
+        end
+      end
+
+      def each_row_as_object
+        0.upto(rows.size).each do |row_index|
+          yield rows[row_index]
         end
       end
 
@@ -69,17 +86,6 @@ module OOXML
         end
       end
 
-      def each_row
-        rows.each_with_index do |row, row_index|
-          yield row.cells.map(&:value), row_index
-        end
-      end
-
-      def each_row_as_object
-        0.upto(rows.size).each do |row_index|
-          yield rows[row_index]
-        end
-      end
 
       def data_validations
         @data_validations ||= begin
@@ -111,6 +117,7 @@ module OOXML
       class Column
         attr_accessor :id, :width, :custom_width, :id_range, :hidden
         alias_method :hidden?, :hidden
+
         def initialize(**attrs)
           attrs.each { |property, value| send("#{property}=", value)}
         end

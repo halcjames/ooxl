@@ -68,10 +68,11 @@ end
 ### Fetching Columns:
 ```
 # Fetch all columns
-oooxml_excel.columns
+ooxml_excel.sheet('Test Sheet 1').columns
 
 # Checking if the column is hidden
-ooxml_excel.column('A1').hidden?
+ooxml_excel.sheet('Test Sheet 1').column(1).hidden? # column index
+ooxml_excel.sheet('Test Sheet 1').column('A').hidden? # column letter
 ```
 
 ### Fetching Styles:
@@ -96,7 +97,7 @@ fill_object.fg_color # FFE10000
 data_validations = ooxml_excel.sheet('Test Sheet 1').data_validations
 
 # Specific validation for cell
-data_validation = ooxml.sheet('Input Sheet').data_validation_for_cell('D4')
+data_validation = ooxml.sheet('Input Sheet').data_validation('D4')
 
 data_validation.prompt # "Sample Validation Message"
 data_validation.formula # 20
