@@ -45,27 +45,29 @@ sheet.rows[0].cells # longer way to do it
 sheet[0][0] # Access the first cell of the row
 sheet.rows[0].cells[0] # longer way to do it
 
-sheet[0][0].value # Access cell values
+sheet[0][0].value # Access cell value
 sheet.rows[0].cells[0].value # longer way to do it
 
+ooxml_excel['Test Sheet 1'][0][0].value
 ```
 
-### Iterating to each row:
+### Iterating through each row:
 ```
 # as an array of strings
 ooxml_excel.sheet('Test Sheet 1').each_row do |row|
   # Do something here...
+  p row # ['text', 'text']
 end
 
 # as an array of objects
 ooxml_excel.sheet('Test Sheet 1').each_row_as_object do |row|
   # Do something here...
-  p row
+  p row.cells # [OOXML::Excel::Row::Cell, ...]
 end
 
 ```
 
-### Fetching Columns:
+### Fetching Columns
 ```
 # Fetch all columns
 ooxml_excel.sheet('Test Sheet 1').columns
@@ -75,8 +77,7 @@ ooxml_excel.sheet('Test Sheet 1').column(1).hidden? # column index
 ooxml_excel.sheet('Test Sheet 1').column('A').hidden? # column letter
 ```
 
-### Fetching Styles:
-
+### Fetching Styles
 ```
 # Font
 font_object = ooxml_excel.sheet('Test Sheet 1').font('A1')
@@ -90,8 +91,22 @@ fill_object = ooxml_excel.sheet('Test Sheet 1').fill('A1')
 fill_object.bg_color # FFE10000
 fill_object.fg_color # FFE10000
 ```
+### Fetching Data from named/cell range
+```
+# named range
+ooxml_excel.named_range('my_named_range') # ['value' 'from', 'range']
 
-### Data Validation
+# cell range
+ooxml['Lists'!$A$1:$A$6] # ['1','2','3','4','5','6']
+
+# or
+ooxml['Lists'!A1:A6] # ['1','2','3','4','5','6']
+
+# or loading a single value
+ooxml['Lists'!A1] # ['1']
+
+```
+### Fetching Data Validation
 ```
 # All Validations
 data_validations = ooxml_excel.sheet('Test Sheet 1').data_validations

@@ -4,6 +4,7 @@ module OOXML
 
       # excel.rb
       # fetch dropdown values based on given data validation formula
+      # this will be depracated: use #named_range instead
       def list_values(formula)
         # "Lists!$J$2:$J$4"
         # transform into useful info
