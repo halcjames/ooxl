@@ -146,11 +146,12 @@ module OOXML
         end
 
         def [](id)
-          if id.is_a?(String)
+          cell = if id.is_a?(String)
             cells.find { |row| row.id == id}
           else
             cells[id]
           end
+          (cell.present?) ? cell : BlankCell.new(id)
         end
 
         def self.load_from_node(row_node, shared_strings)
@@ -167,6 +168,18 @@ module OOXML
   class Excel
     class Sheet
       class Row
+        
+        class BlankCell
+          attr_reader :id
+
+          def initialize(id)
+            @id = id
+          end
+          def value
+            nil
+          end
+        end
+
         class Cell
           attr_accessor :id, :t, :s, :v, :shared_strings
           # t = type

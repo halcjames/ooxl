@@ -18,13 +18,14 @@ module OOXML
     end
 
     def sheet(sheet_name)
-      sheet_from_workbook = @workbook.sheets.find { |sheet| sheet[:name] == sheet_name}
-      raise "No #{sheet_name} in workbook." if sheet_from_workbook.blank?
-      sheet = @sheets.fetch(sheet_from_workbook[:relationship_id])
+      sheet_index = @workbook.sheets.index { |sheet| sheet[:name] == sheet_name}
+      raise "No #{sheet_name} in workbook." if sheet_index.blank?
+      sheet = @sheets.fetch((sheet_index+1).to_s)
+
 
       # shared variables
       sheet.name = sheet_name
-      sheet.comments = @comments[sheet_from_workbook[:relationship_id]]
+      sheet.comments = @comments[(sheet_index+1).to_s]
       sheet.styles = @styles
       sheet.defined_names = @workbook.defined_names
       sheet
