@@ -1,7 +1,7 @@
 module OOXML
   class Excel
     class Styles
-      attr_accessor :fonts, :fills, :cell_style_xfs
+      attr_accessor :fonts, :fills, :number_formats, :cell_style_xfs
       def initialize(**attrs)
         attrs.each { |property, value| send("#{property}=", value)}
       end
@@ -10,7 +10,8 @@ module OOXML
         cell_style = cell_style_xfs.fetch(id)
         {
           font: fonts_by_index(cell_style.font_id),
-          fill: fills_by_index(cell_style.fill_id)
+          fill: fills_by_index(cell_style.fill_id),
+          number_format: number_formats_by_index(cell_style.number_formatting_id),
         }
       end
 
@@ -22,11 +23,15 @@ module OOXML
         @fills[fill_index]
       end
 
+      def number_formats_by_index(number_format_index)
+        @number_formats.find { |number_format| number_format.id == number_format_index.to_s}.try(:code)
+      end
+
       def self.load_from_stream(xml_stream)
         style_doc = Nokogiri.XML(xml_stream).remove_namespaces!
         fonts = style_doc.xpath('//fonts/font')
         fills = style_doc.xpath('//fills/fill')
-
+        number_formats = style_doc.xpath('//numFmts/numFmt')
         # This element contains the master formatting records (xf) which
         # define the formatting applied to cells in this workbook.
         # link: https://msdn.microsoft.com/en-us/library/documentformat.openxml.spreadsheet.cellformats(v=office.14).aspx
@@ -35,6 +40,7 @@ module OOXML
         self.new(
           fonts: fonts.map { |font_node| Excel::Styles::Font.load_from_node(font_node)},
           fills: fills.map { |fill_node| Excel::Styles::Fill.load_from_node(fill_node)},
+          number_formats: number_formats.map { |num_fmt_node| Excel::Styles::NumFmt.load_from_node(num_fmt_node) },
           cell_style_xfs: cell_style_xfs.map { |cell_style_xfs_node| Excel::Styles::CellStyleXfs.load_from_node(cell_style_xfs_node)}
         )
       end
@@ -68,7 +74,21 @@ module OOXML
     end
   end
 end
-
+module OOXML
+  class Excel
+    class Styles
+      class NumFmt
+        attr_accessor :id, :code
+        def self.load_from_node(num_fmt_node)
+          new_format = self.new.tap do |number_format|
+            number_format.id = num_fmt_node.attributes["numFmtId"].try(:value)
+            number_format.code = num_fmt_node.attributes["formatCode"].try(:value)
+          end
+        end
+      end
+    end
+  end
+end
 # <xf numFmtId="0" borderId="0" fillId="0" fontId="0" applyAlignment="1" applyFont="1" xfId="0"/>
 module OOXML
   class Excel

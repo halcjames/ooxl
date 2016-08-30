@@ -52,7 +52,7 @@ module OOXML
           # TODO: get the value of merged cells
           # merged_cells = @xml.xpath('//mergeCells/mergeCell').map { |merged_cell| merged_cell.attributes["ref"].try(:value) }
           @xml.xpath('//sheetData/row').map do |row_node|
-            Excel::Sheet::Row.load_from_node(row_node, shared_strings)
+            Excel::Sheet::Row.load_from_node(row_node, shared_strings, styles)
           end
         end
       end
@@ -68,6 +68,11 @@ module OOXML
           yield rows[row_index]
         end
       end
+
+      # def styles(cell_reference)
+      #   style_id = fetch_style_style_id(cell_reference)
+      #   style = @styles.by_id(style_id.to_i) if style_id.present?
+      # end
 
       def font(cell_reference)
         style_id = fetch_style_style_id(cell_reference)
@@ -154,10 +159,10 @@ module OOXML
           (cell.present?) ? cell : BlankCell.new(id)
         end
 
-        def self.load_from_node(row_node, shared_strings)
+        def self.load_from_node(row_node, shared_strings, styles)
           new(id: row_node.attributes["r"].try(:value),
               spans: row_node.attributes["spans"].try(:value),
-              cells: row_node.xpath('c').map {  |cell_node| Row::Cell.load_from_node(cell_node, shared_strings) } )
+              cells: row_node.xpath('c').map {  |cell_node| Row::Cell.load_from_node(cell_node, shared_strings, styles) } )
         end
       end
     end
@@ -168,7 +173,6 @@ module OOXML
   class Excel
     class Sheet
       class Row
-        
         class BlankCell
           attr_reader :id
 
@@ -181,24 +185,65 @@ module OOXML
         end
 
         class Cell
-          attr_accessor :id, :t, :s, :v, :shared_strings
+          attr_accessor :id, :t, :s, :v, :shared_strings, :styles
           # t = type
           # v = value
-          # s = ??
+          # s = style
           def initialize(**attrs)
             attrs.each { |property, value| send("#{property}=", value)}
           end
 
-          def value
-            (v.present?) ? shared_strings[v.to_i] : nil
+          def type
+            if t == 's'
+              "string"
+            elsif t == 'd'
+              "date"
+            elsif t == 'n'
+              "number"
+            else
+              # TODO: git all types
+              "string"
+            end
           end
 
-          def self.load_from_node(cell_node, shared_strings)
+          def style
+            @style ||= begin
+              if s.present?
+                style = styles.by_id(s.to_i)
+              end
+            end
+          end
+
+          def number_format
+            if (style.present?)
+              nf = style[:number_format]
+              (nf.present?) ? nf.gsub("\\", "") : nil
+            end
+          end
+
+          def font
+            (style.present?) ? style[:font] : nil
+          end
+
+          def fill
+            (style.present?) ? style[:fill]: nil
+          end
+
+          def value
+            if type == "number"
+              v
+            else
+              (v.present?) ? shared_strings[v.to_i] : nil
+            end
+          end
+
+          def self.load_from_node(cell_node, shared_strings, styles)
             new(id: cell_node.attributes["r"].try(:value),
                 t: cell_node.attributes["t"].try(:value),
                 s: cell_node.attributes["s"].try(:value),
                 v: cell_node.at('v').try(:text),
-                shared_strings: shared_strings )
+                shared_strings: shared_strings,
+                styles: styles )
           end
         end
       end
