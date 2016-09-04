@@ -81,10 +81,10 @@ ooxml_excel.sheet('Test Sheet 1').column('A').hidden? # column letter
 ```
 # Font
 font_object = ooxml_excel.sheet('Test Sheet 1').font('A1')
-font.bold? # false
-font.name # Arial
-font.rgb_color # FFE10000
-font.size # 8
+font_object.bold? # false
+font_object.name # Arial
+font_object.rgb_color # FFE10000
+font_object.size # 8
 
 # Cell Fill
 fill_object = ooxml_excel.sheet('Test Sheet 1').fill('A1')
@@ -104,6 +104,9 @@ ooxml['Lists'!A1:A6] # ['1','2','3','4','5','6']
 
 # or loading a single value
 ooxml['Lists'!A1] # ['1']
+
+# or loading a box type values
+ooxml['Lists!A1:B2'] # [['1', '2'], ['2','3']]
 
 ```
 ### Fetching Data Validation

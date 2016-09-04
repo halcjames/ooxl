@@ -109,7 +109,7 @@ module OOXML
         raise 'Invalid Cell Reference!' if cell_reference[/[A-Z]{1,}\d+/].blank?
         row_index = cell_reference.scan(/[A-Z{1,}](\d+)/).flatten.first.to_i - 1
         return if rows[row_index].blank? || rows[row_index][cell_reference].blank?
-        rows[row_index][cell_reference].s
+        rows[row_index][cell_reference].style_id
       end
 
     end
@@ -185,24 +185,24 @@ module OOXML
         end
 
         class Cell
-          attr_accessor :id, :t, :s, :v, :shared_strings, :styles
-          # t = type
-          # v = value
-          # s = style
+          attr_accessor :id, :type_id, :style_id, :value_id, :shared_strings, :styles
+
           def initialize(**attrs)
             attrs.each { |property, value| send("#{property}=", value)}
           end
 
           def type
-            if t == 's'
-              "string"
-            elsif t == 'd'
-              "date"
-            elsif t == 'n'
-              "number"
-            else
-              # TODO: git all types
-              "string"
+            @type ||= begin
+              case type_id
+              when 's' then :string
+              when 'n' then :number
+              when 'b' then :boolean
+              when 'd' then :date
+              when 'str' then :formula
+              when 'inlineStr' then :inline_str
+              else
+                :error
+              end
             end
           end
 
@@ -230,18 +230,20 @@ module OOXML
           end
 
           def value
-            if type == "number"
-              v
+            case type
+            when :string
+              (value_id.present?) ? shared_strings[value_id.to_i] : nil
             else
-              (v.present?) ? shared_strings[v.to_i] : nil
+              # TODO: to support other types soon
+              value_id
             end
           end
 
           def self.load_from_node(cell_node, shared_strings, styles)
             new(id: cell_node.attributes["r"].try(:value),
-                t: cell_node.attributes["t"].try(:value),
-                s: cell_node.attributes["s"].try(:value),
-                v: cell_node.at('v').try(:text),
+                type_id: cell_node.attributes["t"].try(:value),
+                style_id: cell_node.attributes["s"].try(:value),
+                value_id: cell_node.at('v').try(:text),
                 shared_strings: shared_strings,
                 styles: styles )
           end

@@ -49,11 +49,27 @@ module OOXML
           cell_letters = formula.gsub(/[\d]/, '').split(':')
           start_index, end_index = formula.gsub(/[^\d:]/, '').split(':').map(&:to_i)
 
-          cell_letter = cell_letters.uniq.first
-          (start_index..end_index).to_a.map do |row_index|
-            row = rows[row_index-1]
-            next if row.blank?
-            row["#{cell_letter}#{row_index}"].value
+          # This will allow values from this pattern
+          # 'SheetName!A1:C3'
+          # The number after the cell letter will be the index
+          # 1 => start_index
+          # 3 => end_index
+          # Expected output would be: [['value', 'value', 'value'], ['value', 'value', 'value'], ['value', 'value', 'value']]
+          if cell_letters.uniq.size > 1
+            start_index.upto(end_index).map do  |row_index|
+              (cell_letters.first..cell_letters.last).map do |cell_letter|
+                  row = rows[row_index-1]
+                  next if row.blank?
+                  row["#{cell_letter}#{row_index}"].value
+              end
+            end
+          else
+            cell_letter = cell_letters.uniq.first
+            (start_index..end_index).to_a.map do |row_index|
+              row = rows[row_index-1]
+              next if row.blank?
+              row["#{cell_letter}#{row_index}"].value
+            end
           end
         else
           # when only one value: B2
