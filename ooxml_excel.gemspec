@@ -1,14 +1,14 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'ooxml_excel/version'
+require 'ooxl/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "ooxml_excel"
-  spec.version       = OOXML::Excel::VERSION
+  spec.name          = "ooxl"
+  spec.version       = OOXL::VERSION
   spec.authors       = ["James Mones"]
   spec.email         = ["bajong009@gmail.com"]
-  spec.summary       = %q{OOXML Excel - Parse Excel Spreadsheets (xlsx, xlsm).}
+  spec.summary       = %q{OOXL Excel - Parse Excel Spreadsheets (xlsx, xlsm).}
   spec.description   = %q{A Ruby spreadsheet parser for Excel (xlsx, xlsm).}
   spec.homepage      = "https://github.com/halcjames/ooxml_excel"
 

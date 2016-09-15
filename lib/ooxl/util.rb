@@ -1,4 +1,4 @@
-module OOXML
+class OOXL
   module Util
     COLUMN_LETTERS = ('A'..'ZZZZ').to_a
     def letter_equivalent(index)

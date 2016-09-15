@@ -1,14 +1,14 @@
 require 'spec_helper'
-require 'pry'
-describe OOXML::Excel do
-  let(:ooxml) { OOXML::Excel.new('spec/ooxml_excel/resources/test.xlsx') }
+describe OOXL do
+  let(:ooxml) { OOXL.new('spec/ooxl/resources/test.xlsx') }
 
   it 'loads spreadsheet' do
-    expect(ooxml.class).to be OOXML::Excel
+    expect(ooxml.class).to be OOXL
   end
 
-  it 'loads all sheets' do
-    expect(ooxml.sheets).to eq ['Sheet1', 'Sheet2']
+  it 'loads sheets' do
+    expect(ooxml.sheets).to eq ['Sheet1', 'Sheet2', 'Hidden']
+    expect(ooxml.sheets(skip_hidden: true)).to eq ['Sheet1', 'Sheet2']
   end
 
   it 'loads named range values' do
@@ -22,7 +22,6 @@ describe OOXML::Excel do
   it 'loads cell range values (box type)' do
     expect(ooxml['Sheet2!A1:B2']).to eq [['Range Value', '2'], ['Range Value 2', '3']]
   end
-
 
   # will add on the next update
 end
