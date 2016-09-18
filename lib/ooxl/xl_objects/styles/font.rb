@@ -22,3 +22,21 @@ class OOXL
     end
   end
 end
+
+# <fonts count="3">
+#    <font>
+#       <sz val="10" />
+#       <name val="Arial" />
+#    </font>
+#    <font>
+#       <sz val="10" />
+#       <name val="Arial" />
+#       <family val="2" />
+#    </font>
+#    <font>
+#       <b />
+#       <sz val="9" />
+#       <name val="Arial" />
+#       <family val="2" />
+#    </font>
+# </fonts>

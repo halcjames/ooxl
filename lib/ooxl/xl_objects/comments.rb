@@ -22,7 +22,6 @@ class OOXL
           comment_text_node.text
         end
 
-        # value = (comment_node.xpath('./text/r/t').last || comment_node.at_xpath('./text/r/t') || comment_node.at_xpath('./text/t')).text
         id = comment_node.attributes["ref"].to_s
         [id, value]
       end.to_h
@@ -30,3 +29,98 @@ class OOXL
     end
   end
 end
+
+
+# <comments>
+#    <authors>
+#       <author>Author1</author>
+#    </authors>
+#    <commentList>
+#       <comment ref="J1" authorId="0" shapeId="0">
+#          <text>
+#             <r>
+#                <rPr>
+#                   <sz val="8" />
+#                   <color indexed="81" />
+#                   <rFont val="Tahoma" />
+#                   <family val="2" />
+#                </rPr>
+#                <t>Is the product weight consistent? ( Yes or No)</t>
+#             </r>
+#          </text>
+#       </comment>
+#       <comment ref="L1" authorId="0" shapeId="0">
+#          <text>
+#             <r>
+#                <rPr>
+#                   <sz val="8" />
+#                   <color indexed="81" />
+#                   <rFont val="Tahoma" />
+#                   <family val="2" />
+#                </rPr>
+#                <t xml:space="preserve">Enter weight of product without any packaging.
+# </t>
+#             </r>
+#          </text>
+#       </comment>
+#       <comment ref="O1" authorId="0" shapeId="0">
+#          <text>
+#             <r>
+#                <rPr>
+#                   <sz val="8" />
+#                   <color indexed="81" />
+#                   <rFont val="Tahoma" />
+#                   <family val="2" />
+#                </rPr>
+#                <t>Number of days product can remain on store shelf.</t>
+#             </r>
+#             <r>
+#                <rPr>
+#                   <sz val="8" />
+#                   <color indexed="81" />
+#                   <rFont val="Tahoma" />
+#                   <family val="2" />
+#                </rPr>
+#                <t xml:space="preserve">
+# </t>
+#             </r>
+#          </text>
+#       </comment>
+#       <comment ref="P1" authorId="0" shapeId="0">
+#          <text>
+#             <r>
+#                <rPr>
+#                   <sz val="8" />
+#                   <color indexed="81" />
+#                   <rFont val="Tahoma" />
+#                   <family val="2" />
+#                </rPr>
+#                <t>Total life of product in number of days (including shelf life).</t>
+#             </r>
+#             <r>
+#                <rPr>
+#                   <sz val="8" />
+#                   <color indexed="81" />
+#                   <rFont val="Tahoma" />
+#                   <family val="2" />
+#                </rPr>
+#                <t xml:space="preserve">
+# </t>
+#             </r>
+#          </text>
+#       </comment>
+#       <comment ref="Q1" authorId="0" shapeId="0">
+#          <text>
+#             <r>
+#                <rPr>
+#                   <sz val="8" />
+#                   <color indexed="81" />
+#                   <rFont val="Tahoma" />
+#                   <family val="2" />
+#                </rPr>
+#                <t>Product packaging Weight only!</t>
+#             </r>
+#          </text>
+#       </comment>
+#    </commentList>
+# </comments>

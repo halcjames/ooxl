@@ -29,3 +29,48 @@ class OOXL
     end
   end
 end
+
+# <fills count="9">
+#    <fill>
+#       <patternFill patternType="none" />
+#    </fill>
+#    <fill>
+#       <patternFill patternType="gray125" />
+#    </fill>
+#    <fill>
+#       <patternFill patternType="solid">
+#          <fgColor theme="0" tint="-0.249977111117893" />
+#          <bgColor indexed="64" />
+#       </patternFill>
+#    </fill>
+#    <fill>
+#       <patternFill patternType="solid">
+#          <fgColor theme="0" tint="-0.249977111117893" />
+#          <bgColor indexed="31" />
+#       </patternFill>
+#    </fill>
+#    <fill>
+#       <patternFill patternType="solid">
+#          <fgColor theme="0" tint="-4.9989318521683403E-2" />
+#          <bgColor indexed="64" />
+#       </patternFill>
+#    </fill>
+#    <fill>
+#       <patternFill patternType="solid">
+#          <fgColor rgb="FFFFFF00" />
+#          <bgColor indexed="64" />
+#       </patternFill>
+#    </fill>
+#    <fill>
+#       <patternFill patternType="solid">
+#          <fgColor theme="0" tint="-0.24994659260841701" />
+#          <bgColor indexed="64" />
+#       </patternFill>
+#    </fill>
+#    <fill>
+#       <patternFill patternType="solid">
+#          <fgColor rgb="FFFFCC99" />
+#          <bgColor indexed="64" />
+#       </patternFill>
+#    </fill>
+# </fills>

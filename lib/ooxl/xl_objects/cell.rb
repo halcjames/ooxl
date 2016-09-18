@@ -10,6 +10,14 @@ class OOXL
     end
   end
 
+  # where,
+  # r = reference
+  # s = style
+  # t = type
+  # v = value
+  # <c r="A1" s="227" t="s">
+  #  <v>113944</v>
+  # </c>
   class Cell
     attr_accessor :id, :type_id, :style_id, :value_id, :shared_strings, :styles
 
@@ -18,7 +26,7 @@ class OOXL
     end
 
     def next_id(offset: 1, location: "bottom")
-      _, column_letter, column_index = id.partition(/[A-Z]/)
+      _, column_letter, column_index = id.partition(/[A-Z]+/)
 
       # ensure that all are numbers
       column_index = column_index.to_i

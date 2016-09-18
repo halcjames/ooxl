@@ -17,3 +17,10 @@ class OOXL
     end
   end
 end
+
+# <cellStyleXfs count="4">
+#    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" />
+#    <xf numFmtId="0" fontId="1" fillId="0" borderId="0" />
+#    <xf numFmtId="0" fontId="39" fillId="0" borderId="0" applyProtection="0" />
+#    <xf numFmtId="9" fontId="1" fillId="0" borderId="0" applyFont="0" applyFill="0" applyBorder="0" applyAlignment="0" applyProtection="0" />
+# </cellStyleXfs>
