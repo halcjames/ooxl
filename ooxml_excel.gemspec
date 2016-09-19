@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["bajong009@gmail.com"]
   spec.summary       = %q{OOXL Excel - Parse Excel Spreadsheets (xlsx, xlsm).}
   spec.description   = %q{A Ruby spreadsheet parser for Excel (xlsx, xlsm).}
-  spec.homepage      = "https://github.com/halcjames/ooxml_excel"
+  spec.homepage      = "https://github.com/halcjames/ooxl"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.

@@ -1,7 +1,7 @@
-require_relative 'styles/cell_style_reference'
-require_relative 'styles/fill'
-require_relative 'styles/font'
-require_relative 'styles/number_formatting'
+require_relative 'cell_style_reference'
+require_relative 'fill'
+require_relative 'font'
+require_relative 'number_formatting'
 class OOXL
   class Styles
     attr_accessor :fonts, :fills, :number_formats, :cell_style_xfs
@@ -41,10 +41,10 @@ class OOXL
       cell_style_xfs =  style_doc.xpath('//cellXfs/xf')
 
       self.new(
-        fonts: fonts.map { |font_node| Styles::Font.load_from_node(font_node)},
-        fills: fills.map { |fill_node| Styles::Fill.load_from_node(fill_node) if fill_node.to_s.include?('patternFill')},
-        number_formats: number_formats.map { |num_fmt_node| Styles::NumberFormatting.load_from_node(num_fmt_node) },
-        cell_style_xfs: cell_style_xfs.map { |cell_style_xfs_node| Styles::CellStyleReference.load_from_node(cell_style_xfs_node)}
+        fonts: fonts.map { |font_node| Font.load_from_node(font_node)},
+        fills: fills.map { |fill_node| Fill.load_from_node(fill_node) if fill_node.to_s.include?('patternFill')},
+        number_formats: number_formats.map { |num_fmt_node| NumberFormatting.load_from_node(num_fmt_node) },
+        cell_style_xfs: cell_style_xfs.map { |cell_style_xfs_node| CellStyleReference.load_from_node(cell_style_xfs_node)}
       )
     end
   end
