@@ -7,6 +7,7 @@ require 'zip'
 require "ooxl/version"
 
 # library
+require "ooxl/list_helper"
 require "ooxl/ooxl"
 require "ooxl/util"
 require "ooxl/xl_objects/workbook"

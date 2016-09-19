@@ -1,5 +1,7 @@
 class OOXL
   include Enumerable
+  include ListHelper
+
   def initialize(spreadsheet_filepath, options={})
     @workbook = nil
     @sheets = {}
@@ -43,20 +45,16 @@ class OOXL
   def [](text)
     # immediately treat as cell range if an exclamation point is detected
     # otherwise, normally load a sheet
-
-    text.include?('!') ? load_list_values(text) : sheet(text)
+    text.include?('!') ? load_cell_range(text) : sheet(text)
   end
 
   def named_range(name)
-    # "Hidden11390550_39"=>"Hidden!$B$734:$B$735"
-    # ooxml.named_range('Hidden11390550_107')
-    # a typical named range would be be
     # yes_no => 'Lists'!$A$1:$A$6
     defined_name = @workbook.defined_names[name]
-    load_list_values(defined_name) if defined_name.present?
+    load_cell_range(defined_name) if defined_name.present?
   end
 
-  def load_list_values(range_text)
+  def load_cell_range(range_text)
     # get the sheet name => 'Lists'
     sheet_name = range_text.gsub(/[\$\']/, '').scan(/^[^!]*/).first
     # fetch the cell range => '$A$1:$A$6'
@@ -64,7 +62,6 @@ class OOXL
     # get the sheet object and fetch the cells in range
     sheet(sheet_name).list_values_from_cell_range(cell_range)
   end
-  alias_method :list_values, :load_list_values
 
   def fetch_comments(sheet_index)
     final_sheet_index = sheet_index+1
