@@ -19,7 +19,7 @@ class OOXL
         working_sheet = sheet(sheet_name)
 
         # gather values
-        list_values = working_sheet.load_cell_range(cell_range)
+        list_values = working_sheet.list_values_from_cell_range(cell_range)
       end
     end
   end

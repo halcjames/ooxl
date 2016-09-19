@@ -23,5 +23,11 @@ describe OOXL do
     expect(ooxml['Sheet2!A1:B2']).to eq [['Range Value', '2'], ['Range Value 2', '3']]
   end
 
+  it 'loads list values' do
+    expect(ooxml.list_values('"Demo,Demo 2"')).to eq ['Demo', 'Demo 2']
+    expect(ooxml.list_values('Sheet2!A1:B2')). to eq [['Range Value', '2'], ['Range Value 2', '3']]
+    expect(ooxml.list_values('Sheet2!A1:A2')). to eq ['Range Value', 'Range Value 2']
+  end
+
   # will add on the next update
 end
