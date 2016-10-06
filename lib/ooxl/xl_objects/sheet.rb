@@ -113,7 +113,6 @@ class OOXL
       if cell_range.include?(":")
         cell_letters = cell_range.gsub(/[\d]/, '').split(':')
         start_index, end_index = cell_range.gsub(/[^\d:]/, '').split(':').map(&:to_i)
-
         # This will allow values from this pattern
         # 'SheetName!A1:C3'
         # The number after the cell letter will be the index
@@ -123,7 +122,7 @@ class OOXL
         if cell_letters.uniq.size > 1
           start_index.upto(end_index).map do  |row_index|
             (cell_letters.first..cell_letters.last).map do |cell_letter|
-                row = rows[row_index-1]
+                row = fetch_row_by_id(row_index.to_s)
                 next if row.blank?
                 row["#{cell_letter}#{row_index}"].value
             end
@@ -131,7 +130,7 @@ class OOXL
         else
           cell_letter = cell_letters.uniq.first
           (start_index..end_index).to_a.map do |row_index|
-            row = rows[row_index-1]
+            row = fetch_row_by_id(row_index.to_s)
             next if row.blank?
             row["#{cell_letter}#{row_index}"].value
           end
@@ -139,7 +138,7 @@ class OOXL
       else
         # when only one value: B2
         row_index = cell_range.gsub(/[^\d:]/, '').split(':').map(&:to_i).first
-        row = rows[row_index-1]
+        row = fetch_row_by_id(row_index.to_s)
         return if row.blank?
         [row[cell_range].value]
       end
@@ -151,6 +150,9 @@ class OOXL
     end
 
     private
+    def fetch_row_by_id(row_id)
+      rows.find { |row| row.id == row_id.to_s}
+    end
     def fetch_style_style_id(cell_reference)
       raise 'Invalid Cell Reference!' if cell_reference[/[A-Z]{1,}\d+/].blank?
       row_index = cell_reference.scan(/[A-Z{1,}](\d+)/).flatten.first.to_i - 1
