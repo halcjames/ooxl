@@ -35,24 +35,32 @@ class OOXL
       def sqref_range
         @sqref_range ||= begin
           # "BH5:BH271 BI5:BI271"
-          if !sqref.include?(':') && !sqref.include?(' ')
-            cell_letter = sqref.gsub(/[\d]/, '')
-            index = sqref.gsub(/[^\d]/, '').to_i
-            { cell_letter => (index..index)}
+          if sqref.blank?
+            []
           else
-            sqref.split( ' ').map do |splitted_by_space_sqref|
-              # ["BH5:BH271, "BI5:BI271"]
-              if splitted_by_space_sqref.is_a?(Array)
-                splitted_by_space_sqref.map do |sqref|
-                  build_range(splitted_by_space_sqref)
-                end
-              else
-                # "BH5:BH271"
-                build_range(splitted_by_space_sqref)
-              end
-            end.to_h
+            !sqref.include?(':') && !sqref.include?(' ') ? build_single_range(sqref) : build_multiple_range(sqref)
           end
         end
+      end
+
+      def build_multiple_range(sqref)
+        sqref.split(' ').map do |splitted_by_space_sqref|
+          # ["BH5:BH271, "BI5:BI271"]
+          if splitted_by_space_sqref.is_a?(Array)
+            splitted_by_space_sqref.map do |sqref|
+              build_range(splitted_by_space_sqref)
+            end
+          else
+            # "BH5:BH271"
+            build_range(splitted_by_space_sqref)
+          end
+        end.to_h
+      end
+
+      def build_single_range(sqref)
+        cell_letter = sqref.gsub(/[\d]/, '')
+        index = sqref.gsub(/[^\d]/, '').to_i
+        { cell_letter => (index..index)}
       end
 
       def build_range(sqref)
