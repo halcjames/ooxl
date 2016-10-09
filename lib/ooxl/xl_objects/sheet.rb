@@ -85,9 +85,19 @@ class OOXL
 
     def data_validations
       @data_validations ||= begin
-        @xml.xpath('//dataValidations/dataValidation').map do |data_validation_node|
+
+        # original validations
+        dvalidations = @xml.xpath('//dataValidations/dataValidation').map do |data_validation_node|
           Sheet::DataValidation.load_from_node(data_validation_node)
         end
+
+        # extended validations
+        dvalidations_ext = @xml.xpath('//extLst//ext//dataValidations/dataValidation').map do |data_validation_node_ext|
+          Sheet::DataValidation.load_from_node(data_validation_node_ext)
+        end
+
+        # merge validations
+        [dvalidations, dvalidations_ext].flatten.compact
       end
     end
 

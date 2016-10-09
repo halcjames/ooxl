@@ -17,7 +17,7 @@ class OOXL
         allow_blank = data_validation_node.attribute('allowBlank').try(:value)
         prompt = data_validation_node.attribute('prompt').try(:value)
         type = data_validation_node.attribute('type').try(:value)
-        sqref = data_validation_node.attribute('sqref').try(:value)
+        sqref = data_validation_node.attribute('sqref').try(:value) || data_validation_node.at('sqref').try(:content)
         formula = data_validation_node.at('formula1').try(:content)
 
         self.new(allow_blank: allow_blank,
