@@ -12,6 +12,7 @@ class OOXL
       @comments = {}
       @defined_names = {}
       @styles = []
+      @loaded_cache = {}
     end
 
     def code_name
@@ -47,22 +48,46 @@ class OOXL
       end
     end
 
-    def row(index)
-      rows.find { |row| row.id == index.to_s}
+    def row(index, stream: false)
+      if @loaded_cache[:rows] || !stream
+        rows.find { |row| row.id == index.to_s}
+      else
+        found_row = nil
+        rows do |row|
+          if row.id == index.to_s
+            found_row = row
+            break
+          end
+        end
+        found_row
+      end
+    end
+
+    # test mode
+    def cells_by_column(column_letter)
+      columns = []
+      rows.each do |row|
+        columns << row.cells.find { |cell| to_column_letter(cell.id) == column_letter}
+      end
+      columns
     end
 
     def rows
       @rows ||= begin
         # TODO: get the value of merged cells
         # merged_cells = @xml.xpath('//mergeCells/mergeCell').map { |merged_cell| merged_cell.attributes["ref"].try(:value) }
-        @xml.xpath('//sheetData/row').map do |row_node|
-          Row.load_from_node(row_node, @shared_strings, styles)
+        all_rows = @xml.xpath('//sheetData/row').map do |row_node|
+          row = Row.load_from_node(row_node, @shared_strings, styles)
+          yield row if block_given?
+          row
         end
+        @loaded_cache[:rows] = true
+        all_rows
       end
     end
 
     def each
-      rows.each { |row| yield row }
+      rows  { |row| yield row }
     end
 
     def font(cell_reference)

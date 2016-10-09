@@ -41,7 +41,15 @@ describe OOXL::Sheet do
   it 'loads row' do
     expect(sheet.rows.size).to eq 2
     expect(sheet.row(1).class).to be OOXL::Row
+    expect(sheet.row(1).id).to eq '1'
     expect(sheet.row(2).class).to be OOXL::Row
+    expect(sheet.row(2).id).to eq '2'
+  end
+
+  it 'loads cells by column' do
+    columns = sheet.cells_by_column('A')
+    expect(columns.first.class).to be OOXL::Cell
+    expect(columns.size).to eq 2
   end
 
   it 'loads data validations' do

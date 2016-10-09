@@ -9,6 +9,10 @@ class OOXL
       COLUMN_LETTERS.index { |c_letter| c_letter == letter}
     end
 
+    def to_column_letter(reference)
+      reference.gsub(/\d+/, '')
+    end
+
     def uniform_reference(ref)
       ref.to_s[/[A-Z]/] ? letter_index(ref) + 1 : ref
     end
