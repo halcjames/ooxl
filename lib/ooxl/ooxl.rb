@@ -84,7 +84,7 @@ class OOXL
           @comments[comment_id] = OOXL::Comments.load_from_stream(entry.get_input_stream.read)
         when "xl/sharedStrings.xml"
           Nokogiri.XML(entry.get_input_stream.read).remove_namespaces!.xpath('sst/si').each do |shared_string_node|
-            shared_strings << shared_string_node.at('t').text
+            shared_strings << shared_string_node.xpath('r/t|t').map { |value_node| value_node.text}.join('')
           end
         when "xl/workbook.xml"
           @workbook = OOXL::Workbook.load_from_stream(entry.get_input_stream.read)
