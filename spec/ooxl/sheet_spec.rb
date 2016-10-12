@@ -12,11 +12,16 @@ describe OOXL::Sheet do
       <row r="1" spans="1:2" x14ac:dyDescent="0.2">
         <c r="A1" s="1" t="s"></c>
         <c r="B1" s="2" t="s"><v>1</v></c>
+        <c r="C1" s="2" t="s"><v>2</v></c>
       </row>
       <row r="2" spans="1:2" x14ac:dyDescent="0.2">
         <c r="A2" s="3" t="s"><v>2</v></c>
         <c r="B2" s="2" t="s"><v>3</v></c>
+        <c r="C3" s="2" t="s"><v>4</v></c>
       </row>
+      <mergeCells count="1">
+        <mergeCell ref="C1:C3"/>
+      </mergeCells>
       <dataValidations count="1">
         <dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="B6">
           <formula1>named_range</formula1>
@@ -50,6 +55,11 @@ describe OOXL::Sheet do
     columns = sheet.cells_by_column('A')
     expect(columns.first.class).to be OOXL::Cell
     expect(columns.size).to eq 2
+  end
+
+  it 'detects merged cell' do
+    expect(sheet.in_merged_cell?('C1')).to be true
+    expect(sheet.in_merged_cell?('B1')).to be false
   end
 
   it 'loads data validations' do

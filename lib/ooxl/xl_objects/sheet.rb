@@ -74,8 +74,6 @@ class OOXL
 
     def rows
       @rows ||= begin
-        # TODO: get the value of merged cells
-        # merged_cells = @xml.xpath('//mergeCells/mergeCell').map { |merged_cell| merged_cell.attributes["ref"].try(:value) }
         all_rows = @xml.xpath('//sheetData/row').map do |row_node|
           row = Row.load_from_node(row_node, @shared_strings, styles)
           yield row if block_given?
@@ -184,6 +182,12 @@ class OOXL
       self.new(Nokogiri.XML(xml_stream).remove_namespaces!, shared_strings)
     end
 
+    def in_merged_cell?(cell_id)
+      column_letter, column_index = cell_id.partition(/\d+/)
+      range = merged_cells_range.find { |column_range, index_range| column_range.cover?(column_letter) && index_range.cover?(column_index) }
+      range.present?
+    end
+
     private
     def fetch_row_by_id(row_id)
       rows.find { |row| row.id == row_id.to_s}
@@ -195,5 +199,15 @@ class OOXL
       rows[row_index][cell_reference].style_id
     end
 
+    def merged_cells_range
+      @merged_cells ||= @xml.xpath('//mergeCells/mergeCell').map do |merged_cell|
+        # <mergeCell ref="Q381:R381"/>
+        start_reference, end_reference = merged_cell.attributes["ref"].try(:value).split(':')
+
+        start_column_letter, start_index =  start_reference.partition(/\d+/)
+        end_column_letter, end_index = end_reference.partition(/\d+/)
+        [(start_column_letter..end_column_letter), (start_index..end_index)]
+      end.to_h
+    end
   end
 end
