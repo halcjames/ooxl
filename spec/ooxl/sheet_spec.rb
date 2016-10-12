@@ -58,8 +58,12 @@ describe OOXL::Sheet do
   end
 
   it 'detects merged cell' do
-    expect(sheet.in_merged_cell?('C1')).to be true
-    expect(sheet.in_merged_cell?('B1')).to be false
+    expect(sheet.in_merged_cells?('C1')).to be true
+    expect(sheet.in_merged_cells?('B1')).to be false
+  end
+
+  it 'loads a single cell' do
+    expect(sheet.cell('A1').class).to be OOXL::Cell
   end
 
   it 'loads data validations' do

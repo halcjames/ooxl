@@ -72,6 +72,11 @@ class OOXL
       columns
     end
 
+    def cell(cell_id)
+      column_letter, row_index = cell_id.partition(/\d+/)
+      row(row_index).cell(column_letter)
+    end
+
     def rows
       @rows ||= begin
         all_rows = @xml.xpath('//sheetData/row').map do |row_node|
@@ -182,7 +187,7 @@ class OOXL
       self.new(Nokogiri.XML(xml_stream).remove_namespaces!, shared_strings)
     end
 
-    def in_merged_cell?(cell_id)
+    def in_merged_cells?(cell_id)
       column_letter, column_index = cell_id.partition(/\d+/)
       range = merged_cells_range.find { |column_range, index_range| column_range.cover?(column_letter) && index_range.cover?(column_index) }
       range.present?

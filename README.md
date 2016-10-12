@@ -55,8 +55,11 @@ sheet[0][0].value# short version
 # Fetch cell value using the short versions
 ooxl['Test Sheet 1'][0][0].value
 
+# fetching the cell directly
+ooxl['Test Sheet 1'].cell('C1')
+
 # Detecting merged cell
-ooxl['Test Sheet 1'].in_merged_cell?('C1') # true/false
+ooxl['Test Sheet 1'].in_merged_cells?('C1') # true/false
 ```
 
 ### Iteration

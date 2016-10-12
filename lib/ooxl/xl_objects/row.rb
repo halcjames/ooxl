@@ -16,6 +16,11 @@ class OOXL
       (cell.present?) ? cell : BlankCell.new(id)
     end
 
+    def cell(cell_id)
+      cell_final_id = cell_id[/[A-Z]{1,}\d+/] ? cell_id : "#{cell_id}#{id}"
+      cells.find { |cell| cell.id == cell_final_id}
+    end
+
     def each
       cells.each { |cell| yield cell }
     end
