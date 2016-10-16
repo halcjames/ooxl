@@ -1,15 +1,4 @@
 class OOXL
-  class BlankCell
-    attr_reader :id
-
-    def initialize(id)
-      @id = id
-    end
-    def value
-      nil
-    end
-  end
-
   # where,
   # r = reference
   # s = style
@@ -117,6 +106,18 @@ class OOXL
           value_id: cell_node.at('v').try(:text),
           shared_strings: shared_strings,
           styles: styles )
+    end
+  end
+
+  class BlankCell < Cell
+    attr_reader :id
+
+    def initialize(id)
+      @id = id
+    end
+
+    def value
+      nil
     end
   end
 end
