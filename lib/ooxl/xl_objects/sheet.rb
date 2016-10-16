@@ -6,13 +6,14 @@ class OOXL
     attr_reader :columns, :data_validations, :shared_strings
     attr_accessor :comments, :styles, :defined_names, :name
 
-    def initialize(xml, shared_strings)
+    def initialize(xml, shared_strings, options={})
       @xml = Nokogiri.XML(xml).remove_namespaces!
       @shared_strings = shared_strings
       @comments = {}
       @defined_names = {}
       @styles = []
       @loaded_cache = {}
+      @options = options
     end
 
     def code_name
@@ -80,7 +81,7 @@ class OOXL
     def rows
       @rows ||= begin
         all_rows = @xml.xpath('//sheetData/row').map do |row_node|
-          row = Row.load_from_node(row_node, @shared_strings, styles)
+          row = Row.load_from_node(row_node, @shared_strings, @styles, @options)
           yield row if block_given?
           row
         end
@@ -90,7 +91,14 @@ class OOXL
     end
 
     def each
-      rows  { |row| yield row }
+      if @options[:padded_rows]
+        (1.upto(rows.size)).each do |row_index|
+          row = row(row_index)
+          yield (row.blank?) ? Row.new(id: "#{row_index}", cells: []) : row
+        end
+      else
+        rows  { |row| yield row }
+      end
     end
 
     def font(cell_reference)

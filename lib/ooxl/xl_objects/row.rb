@@ -4,7 +4,8 @@ class OOXL
     attr_accessor :id, :spans, :cells
 
     def initialize(**attrs)
-      attrs.each { |property, value| send("#{property}=", value)}
+      attrs.each { |property, value| property == :options ? instance_variable_set("@#{property}", value) : send("#{property}=", value)}
+      @options ||= {}
     end
 
     def [](id)
@@ -16,6 +17,19 @@ class OOXL
       (cell.present?) ? cell : BlankCell.new(id)
     end
 
+    def cells
+      if @options[:padded_cells]
+        unless @cells.blank?
+          'A'.upto(@cells.last.column).map do |column_letter|
+            cell = @cells.find { |cell| cell.column == column_letter}
+            (cell.blank?) ? BlankCell.new("#{column_letter}#{id}") : cell
+          end
+        end
+      else
+        @cells
+      end
+    end
+
     def cell(cell_id)
       cell_final_id = cell_id[/[A-Z]{1,}\d+/] ? cell_id : "#{cell_id}#{id}"
       cells.find { |cell| cell.id == cell_final_id}
@@ -25,10 +39,11 @@ class OOXL
       cells.each { |cell| yield cell }
     end
 
-    def self.load_from_node(row_node, shared_strings, styles)
+    def self.load_from_node(row_node, shared_strings, styles, options)
       new(id: row_node.attributes["r"].try(:value),
           spans: row_node.attributes["spans"].try(:value),
-          cells: row_node.xpath('c').map {  |cell_node| OOXL::Cell.load_from_node(cell_node, shared_strings, styles) } )
+          cells: row_node.xpath('c').map {  |cell_node| OOXL::Cell.load_from_node(cell_node, shared_strings, styles)},
+          options: options )
     end
   end
 end
