@@ -1,11 +1,12 @@
 class OOXL
   class Row
     include Enumerable
-    attr_accessor :id, :spans, :cells
-
+    attr_accessor :id, :spans, :cells, :height
+    DEFAULT_HEIGHT = '12.75'
     def initialize(**attrs)
       attrs.each { |property, value| property == :options ? instance_variable_set("@#{property}", value) : send("#{property}=", value)}
       @options ||= {}
+      @height ||= DEFAULT_HEIGHT
     end
 
     def [](id)
@@ -42,6 +43,7 @@ class OOXL
     def self.load_from_node(row_node, shared_strings, styles, options)
       new(id: row_node.attributes["r"].try(:value),
           spans: row_node.attributes["spans"].try(:value),
+          height: row_node.attributes["ht"].try(:value),
           cells: row_node.xpath('c').map {  |cell_node| OOXL::Cell.load_from_node(cell_node, shared_strings, styles)},
           options: options )
     end

@@ -9,7 +9,7 @@ describe OOXL::Sheet do
         <col min="4" max="1025" width="8.5703125"/>
       </cols>
       <sheetData>
-      <row r="1" spans="1:2" x14ac:dyDescent="0.2">
+      <row r="1" spans="1:2" x14ac:dyDescent="0.2" ht="102.33">
         <c r="A1" s="1" t="s"></c>
         <c r="B1" s="2" t="s"><v>1</v></c>
         <c r="C1" s="2" t="s"><v>2</v></c>
@@ -43,12 +43,23 @@ describe OOXL::Sheet do
     expect(sheet.column('C').class).to be OOXL::Column
   end
 
+  it 'loads column width' do
+    expect(sheet.column('A').width).to eq '8.5703125'
+    expect(sheet.column('C').width).to eq '0'
+    expect(sheet.column('D').width).to eq '8.5703125'
+  end
+
   it 'loads row' do
     expect(sheet.rows.size).to eq 2
     expect(sheet.row(1).class).to be OOXL::Row
     expect(sheet.row(1).id).to eq '1'
     expect(sheet.row(2).class).to be OOXL::Row
     expect(sheet.row(2).id).to eq '2'
+  end
+
+  it 'loads row height' do
+    expect(sheet.row(1).height).to eq '102.33'
+    expect(sheet.row(2).height).to eq '12.75'
   end
 
   it 'loads cells by column' do

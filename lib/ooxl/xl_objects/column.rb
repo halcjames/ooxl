@@ -2,9 +2,10 @@ class OOXL
   class Column
     attr_accessor :id, :width, :custom_width, :id_range, :hidden, :best_fit
     alias_method :hidden?, :hidden
-
+    DEFAULT_WIDTH = '8.43'
     def initialize(**attrs)
       attrs.each { |property, value| send("#{property}=", value)}
+      @width ||= DEFAULT_WIDTH
     end
 
     def self.load_from_node(column_node)
