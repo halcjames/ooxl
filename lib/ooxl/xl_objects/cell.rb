@@ -25,6 +25,14 @@ class OOXL
       attrs.each { |property, value| send("#{property}=", value)}
     end
 
+    def column
+      @column ||= id.gsub(/\d+/, '')
+    end
+
+    def row
+      @row ||= id.gsub(/[^\d+]/, '')
+    end
+
     def next_id(offset: 1, location: "bottom")
       _, column_letter, column_index = id.partition(/[A-Z]+/)
 

@@ -66,6 +66,12 @@ describe OOXL::Sheet do
     expect(sheet.cell('A1').class).to be OOXL::Cell
   end
 
+  it 'loads cell coordinates' do
+    cell = sheet.cell('A1')
+    expect(cell.column).to eq 'A'
+    expect(cell.row).to eq '1'
+  end
+
   it 'loads data validations' do
     expect(sheet.data_validations.size).to eq 1
     expect(sheet.data_validation('B6').class).to eq OOXL::Sheet::DataValidation
