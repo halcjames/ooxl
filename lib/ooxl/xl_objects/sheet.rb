@@ -92,7 +92,8 @@ class OOXL
 
     def each
       if @options[:padded_rows]
-        (1.upto(rows.size)).each do |row_index|
+        last_row_index = rows.last.id.to_i
+        (1.upto(last_row_index)).each do |row_index|
           row = row(row_index)
           yield (row.blank?) ? Row.new(id: "#{row_index}", cells: []) : row
         end
