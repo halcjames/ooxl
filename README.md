@@ -120,6 +120,11 @@ ooxml['Lists'!A1] # ['1']
 # or loading a box type values
 ooxml['Lists!A1:B2'] # [['1', '2'], ['2','3']]
 
+# loading all values of a column
+ooxml['Lists!A:A'] # ['1', '2', '3', '4', '5', '6']
+
+
+
 ```
 ### Fetching Data Validation
 ```

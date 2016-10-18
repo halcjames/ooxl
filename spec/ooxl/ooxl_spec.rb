@@ -17,6 +17,7 @@ describe OOXL do
 
   it 'loads cell range values' do
     expect(ooxml['Sheet2!A1:A2']).to eq ['Range Value', 'Range Value 2']
+    expect(ooxml['Sheet1!A:A']).to eq ["Sample Title", "A1", "A2", "Text", "1234", "12345"]
   end
 
   it 'loads cell range values (box type)' do

@@ -159,7 +159,8 @@ class OOXL
       # cell_range values separated by comma
       if cell_range.include?(":")
         cell_letters = cell_range.gsub(/[\d]/, '').split(':')
-        start_index, end_index = cell_range.gsub(/[^\d:]/, '').split(':').map(&:to_i)
+        start_index, end_index = cell_range[/[A-Z]{1,}\d+/] ? cell_range.gsub(/[^\d:]/, '').split(':').map(&:to_i) : [1, rows.size]
+
         # This will allow values from this pattern
         # 'SheetName!A1:C3'
         # The number after the cell letter will be the index
