@@ -8,7 +8,7 @@ class OOXL
     def self.load_from_node(fill_node)
       pattern_fill = fill_node.at('patternFill')
 
-      pattern_type = pattern_fill.attributes["patternType"].value
+      pattern_type = pattern_fill.attributes["patternType"].try(:value)
       if pattern_type == "solid"
         fg_color = pattern_fill.at('fgColor')
         bg_color = pattern_fill.at('bgColor')

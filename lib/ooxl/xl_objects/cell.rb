@@ -8,7 +8,8 @@ class OOXL
   #  <v>113944</v>
   # </c>
   class Cell
-    attr_accessor :id, :type_id, :style_id, :value_id, :shared_strings, :styles
+    extend Util
+    attr_accessor :id, :type_id, :style_id, :value, :shared_strings, :styles
 
     def initialize(**attrs)
       attrs.each { |property, value| send("#{property}=", value)}
@@ -89,23 +90,33 @@ class OOXL
       (style.present?) ? style[:fill]: nil
     end
 
-    def value
-      case type
-      when :string
-        (value_id.present?) ? shared_strings[value_id.to_i] : nil
-      else
-        # TODO: to support other types soon
-        value_id
-      end
+    def self.load_from_node(cell_node, shared_strings, styles)
+      type_id = node_attribute_value(cell_node, 't')
+      new(id: node_attribute_value(cell_node, 'r'),
+          type_id: type_id,
+          style_id: node_attribute_value(cell_node, 's'),
+          value: extract_value(type_id, cell_node, shared_strings),
+          styles: styles )
     end
 
-    def self.load_from_node(cell_node, shared_strings, styles)
-      new(id: cell_node.attributes["r"].try(:value),
-          type_id: cell_node.attributes["t"].try(:value),
-          style_id: cell_node.attributes["s"].try(:value),
-          value_id: cell_node.at('v').try(:text),
-          shared_strings: shared_strings,
-          styles: styles )
+    def self.extract_value(type_id, cell_node, shared_strings)
+      value_id = cell_node.at('v').try(:text)
+
+      case type_id
+
+      when 's'
+        (value_id.present?) ? shared_strings[ Integer(value_id) ] : nil
+
+      when 'inlineStr'
+        value = []
+        cell_node.xpath('is').each do |text_node|
+          value << text_node.xpath('r/t|t').map { |value_node| value_node.text}.join('')
+        end
+        value.join('')
+      else
+        value_id
+      end
+
     end
   end
 
