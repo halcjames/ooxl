@@ -8,7 +8,7 @@ class OOXL
         cell_letter = cell_id.gsub(/[\d]/, '')
         index = cell_id.gsub(/[^\d]/, '').to_i
         range = sqref_range.find do |single_cell_letter_or_range, row_range|
-          single_cell_letter_or_range.is_a?(Range) ? single_cell_letter_or_range.cover?(cell_letter) : single_cell_letter_or_range == cell_letter
+          single_cell_letter_or_range.is_a?(Range) ? single_cell_letter_or_range.include?(cell_letter) : single_cell_letter_or_range == cell_letter
         end
         range.last.include?(index) if range.present?
       end
