@@ -160,7 +160,6 @@ class OOXL
       if cell_range.include?(":")
         cell_letters = cell_range.gsub(/[\d]/, '').split(':')
         start_index, end_index = cell_range[/[A-Z]{1,}\d+/] ? cell_range.gsub(/[^\d:]/, '').split(':').map(&:to_i) : [1, rows.size]
-
         # This will allow values from this pattern
         # 'SheetName!A1:C3'
         # The number after the cell letter will be the index
@@ -169,9 +168,11 @@ class OOXL
         # Expected output would be: [['value', 'value', 'value'], ['value', 'value', 'value'], ['value', 'value', 'value']]
         if cell_letters.uniq.size > 1
           start_index.upto(end_index).map do  |row_index|
-            (cell_letters.first..cell_letters.last).map do |cell_letter|
+            (letter_index(cell_letters.first)..letter_index(cell_letters.last)).map do |cell_index|
                 row = fetch_row_by_id(row_index.to_s)
                 next if row.blank?
+
+                cell_letter = letter_equivalent(cell_index)
                 row["#{cell_letter}#{row_index}"].value
             end
           end
