@@ -21,7 +21,7 @@ class OOXL
     end
 
     def comment(cell_ref)
-      @comments[cell_ref]
+      @comments[cell_ref] unless @comments.blank?
     end
 
     def data_validation(cell_ref)

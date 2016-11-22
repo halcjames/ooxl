@@ -1,6 +1,7 @@
 class OOXL
   class Sheet
     class DataValidation
+      include Util
       attr_accessor :allow_blank, :prompt, :type, :sqref, :formula
 
       def in_sqref_range?(cell_id)
@@ -8,9 +9,17 @@ class OOXL
         cell_letter = cell_id.gsub(/[\d]/, '')
         index = cell_id.gsub(/[^\d]/, '').to_i
         range = sqref_range.find do |single_cell_letter_or_range, row_range|
-          single_cell_letter_or_range.is_a?(Range) ? single_cell_letter_or_range.include?(cell_letter) : single_cell_letter_or_range == cell_letter
+          single_cell_letter_or_range.is_a?(Range) ? single_cell_letter_or_range.include?(cell_letter) || in_normalized_range?(single_cell_letter_or_range, cell_letter) : single_cell_letter_or_range == cell_letter
         end
         range.last.include?(index) if range.present?
+      end
+
+      def in_normalized_range?(range, letter_to_find)
+        if range.first.length != range.last.length
+          (column_letter_to_number(range.first)..column_letter_to_number(range.last)).include?(column_letter_to_number(letter_to_find))
+        else
+          range.include?(letter_to_find)
+        end
       end
 
       def self.load_from_node(data_validation_node)

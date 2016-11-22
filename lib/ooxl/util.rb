@@ -21,6 +21,16 @@ class OOXL
       node.try(:value)
     end
 
+    def column_letter_to_number(column_letter)
+      pow = column_letter.length - 1
+      result = 0
+      column_letter.each_byte do |b|
+        result += 26**pow * (b - 64)
+        pow -= 1
+      end
+      result
+    end
+
     def node_attribute_value(node, attribute_name)
       unless node.blank?
         attribute = node.attributes.find { |key, attribute| key == attribute_name}
