@@ -112,11 +112,7 @@ class OOXL
     end
 
     def fill(cell_reference)
-      style_id = fetch_style_style_id(cell_reference)
-      if style_id.present?
-        style = @styles.by_id(style_id.to_i)
-        (style.present?) ? style[:fill] : nil
-      end
+      cell(cell_reference).try(:fill)
     end
 
 
@@ -207,12 +203,6 @@ class OOXL
     private
     def fetch_row_by_id(row_id)
       rows.find { |row| row.id == row_id.to_s}
-    end
-    def fetch_style_style_id(cell_reference)
-      raise 'Invalid Cell Reference!' if cell_reference[/[A-Z]{1,}\d+/].blank?
-      row_index = cell_reference.scan(/[A-Z{1,}](\d+)/).flatten.first.to_i - 1
-      return if rows[row_index].blank? || rows[row_index][cell_reference].blank?
-      rows[row_index][cell_reference].style_id
     end
 
     def merged_cells_range
