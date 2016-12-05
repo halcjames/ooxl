@@ -75,7 +75,8 @@ class OOXL
 
     def cell(cell_id)
       column_letter, row_index = cell_id.partition(/\d+/)
-      row(row_index).cell(column_letter)
+      current_row = row(row_index)
+      current_row.cell(column_letter) unless current_row.nil?
     end
 
     def rows
@@ -103,12 +104,7 @@ class OOXL
     end
 
     def font(cell_reference)
-      style_id = fetch_style_style_id(cell_reference)
-      if style_id.present?
-        style = @styles.by_id(style_id.to_i)
-
-        (style.present?) ? style[:font] : nil
-      end
+      cell(cell_reference).try(:font)
     end
 
     def fill(cell_reference)

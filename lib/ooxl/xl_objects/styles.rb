@@ -19,11 +19,11 @@ class OOXL
     end
 
     def fonts_by_index(font_index)
-      @fonts[font_index]
+      @fonts[font_index] unless font_index.blank?
     end
 
     def fills_by_index(fill_index)
-      @fills[fill_index]
+      @fills[fill_index] unless fill_index.blank?
     end
 
     def number_formats_by_index(number_format_index)

@@ -43,5 +43,19 @@ describe OOXL do
     expect(values.last).to eq ["Very Far", "5"]
   end
 
+  it 'loads font' do
+    font = ooxml.sheet('Sheet1').font('A1')
+    expect(font.class).to be OOXL::Font
+    expect(font.name).to eq "Arial"
+    expect(font.rgb_color).to eq "FFFF3333"
+    expect(font.size).to eq "10"
+  end
+
+  it 'loads fill' do
+    fill = ooxml.sheet('Sheet1').fill('A2')
+    expect(fill.class).to be OOXL::Fill
+    expect(fill.bg_color).to eq "FFFF6600"
+    expect(fill.fg_color).to eq "FFFF3333"
+  end
   # will add on the next update
 end
