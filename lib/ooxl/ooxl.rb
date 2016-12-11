@@ -48,9 +48,11 @@ class OOXL
     text.include?('!') ? load_cell_range(text) : sheet(text)
   end
 
-  def named_range(name)
+  def named_range(name, clean_range: false)
     # yes_no => 'Lists'!$A$1:$A$6
     defined_name = @workbook.defined_names[name]
+    defined_name = defined_name.gsub(/\[.+\]/, '').squish if clean_range
+
     load_cell_range(defined_name) if defined_name.present?
   end
 
