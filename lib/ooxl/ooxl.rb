@@ -1,7 +1,8 @@
 class OOXL
   include Enumerable
   include ListHelper
-
+  attr_reader :filename
+  
   def initialize(spreadsheet_filepath, options={})
     @workbook = nil
     @sheets = {}
@@ -10,6 +11,7 @@ class OOXL
     @relationships = {}
     @options = options
     @tables = []
+    @filename = File.basename(spreadsheet_filepath)
     parse_spreadsheet_contents(spreadsheet_filepath)
   end
 
