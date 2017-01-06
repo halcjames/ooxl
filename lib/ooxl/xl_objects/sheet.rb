@@ -73,9 +73,9 @@ class OOXL
       columns
     end
 
-    def cell(cell_id)
+    def cell(cell_id, stream: false)
       column_letter, row_index = cell_id.partition(/\d+/)
-      current_row = row(row_index)
+      current_row = row(row_index, stream: stream)
       current_row.cell(column_letter) unless current_row.nil?
     end
 

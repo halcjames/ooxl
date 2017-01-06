@@ -1,7 +1,8 @@
 class OOXL
   include Enumerable
   include ListHelper
-
+  attr_reader :filename
+  
   def initialize(spreadsheet_filepath, options={})
     @workbook = nil
     @sheets = {}
@@ -9,6 +10,8 @@ class OOXL
     @comments = {}
     @relationships = {}
     @options = options
+    @tables = []
+    @filename = File.basename(spreadsheet_filepath)
     parse_spreadsheet_contents(spreadsheet_filepath)
   end
 
@@ -56,6 +59,10 @@ class OOXL
     load_cell_range(defined_name) if defined_name.present?
   end
 
+  def table(name)
+    @tables.find { |tbl| tbl.name == name}
+  end
+
   def load_cell_range(range_text)
     # get the sheet name => 'Lists'
     sheet_name = range_text.gsub(/[\$\']/, '').scan(/^[^!]*/).first
@@ -88,6 +95,8 @@ class OOXL
           Nokogiri.XML(entry.get_input_stream.read).remove_namespaces!.xpath('sst/si').each do |shared_string_node|
             shared_strings << shared_string_node.xpath('r/t|t').map { |value_node| value_node.text}.join('')
           end
+        when /xl\/tables\/.*?/i
+          @tables << OOXL::Table.new(entry.get_input_stream.read)
         when "xl/workbook.xml"
           @workbook = OOXL::Workbook.load_from_stream(entry.get_input_stream.read)
         when /xl\/worksheets\/_rels\/sheet\d+\.xml\.rels/
