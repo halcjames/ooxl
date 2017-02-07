@@ -9,7 +9,7 @@ class OOXL
   # </c>
   class Cell
     extend Util
-    attr_accessor :id, :type_id, :style_id, :value, :shared_strings, :styles
+    attr_accessor :id, :type_id, :style_id, :value, :shared_strings, :styles, :formula
 
     def initialize(**attrs)
       attrs.each { |property, value| send("#{property}=", value)}
@@ -96,7 +96,8 @@ class OOXL
           type_id: type_id,
           style_id: node_attribute_value(cell_node, 's'),
           value: extract_value(type_id, cell_node, shared_strings),
-          styles: styles )
+          styles: styles,
+          formula: cell_node.at('f').try(:content))
     end
 
     def self.extract_value(type_id, cell_node, shared_strings)

@@ -10,7 +10,7 @@ describe OOXL::Sheet do
       </cols>
       <sheetData>
       <row r="1" spans="1:2" x14ac:dyDescent="0.2" ht="102.33">
-        <c r="A1" s="1" t="s"></c>
+        <c r="A1" s="1" t="s"><f>VLOOKUP($C$5,TABLES!$A$904:$AG$910,AG5,0)</f></c>
         <c r="B1" s="2" t="s"><v>1</v></c>
         <c r="C1" s="2" t="s"><v>2</v></c>
       </row>
@@ -31,7 +31,7 @@ describe OOXL::Sheet do
   end
 
   let(:sheet) { OOXL::Sheet.new(sheet_xml, []) }
-
+  let(:test_formula) { 'VLOOKUP($C$5,TABLES!$A$904:$AG$910,AG5,0)'}
   it 'loads sheet' do
     expect(sheet.class).to be OOXL::Sheet
   end
@@ -81,6 +81,11 @@ describe OOXL::Sheet do
     cell = sheet.cell('A1')
     expect(cell.column).to eq 'A'
     expect(cell.row).to eq '1'
+  end
+
+  it 'loads cell formula' do
+    expect(sheet.cell('A1').formula).to eq test_formula
+    expect(sheet.formula('A1')).to eq test_formula
   end
 
   it 'loads data validations' do

@@ -79,6 +79,10 @@ class OOXL
       current_row.cell(column_letter) unless current_row.nil?
     end
 
+    def formula(cell_id, stream: false)
+      cell(cell_id, stream: stream).try(:formula)
+    end
+
     def rows
       @rows ||= begin
         all_rows = @xml.xpath('//sheetData/row').map do |row_node|
