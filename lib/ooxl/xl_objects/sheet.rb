@@ -143,7 +143,7 @@ class OOXL
         if data_validation.formula[/[\s\$\,\:]/]
           (data_validation.formula[/\$/].present?) ? "#{name}!#{data_validation.formula}" : data_validation.formula
         else
-          @defined_names.fetch(data_validation.formula)
+          @defined_names[data_validation.formula]
         end
       end
     end
