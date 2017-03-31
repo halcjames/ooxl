@@ -64,6 +64,10 @@ class OOXL
       end
     end
 
+    def stream_row(index)
+      row(index, stream: true)
+    end
+
     # test mode
     def cells_by_column(column_letter)
       columns = []
@@ -71,6 +75,14 @@ class OOXL
         columns << row.cells.find { |cell| to_column_letter(cell.id) == column_letter}
       end
       columns
+    end
+
+    def last_column(row_index=1)
+      @last_column ||= {}
+      @last_column[row_index] ||= begin
+        cells = stream_row(row_index).try(:cells) 
+        cells.last.column if cells.present?
+      end
     end
 
     def cell(cell_id, stream: false)

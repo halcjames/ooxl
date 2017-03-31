@@ -18,6 +18,7 @@ describe OOXL::Sheet do
         <c r="A2" s="3" t="s"><v>2</v></c>
         <c r="B2" s="2" t="s"><v>3</v></c>
         <c r="C3" s="2" t="s"><v>4</v></c>
+        <c r="D3" s="2" t="s"><v>5</v></c>
       </row>
       <mergeCells count="1">
         <mergeCell ref="C1:C3"/>
@@ -60,6 +61,11 @@ describe OOXL::Sheet do
   it 'loads row height' do
     expect(sheet.row(1).height).to eq '102.33'
     expect(sheet.row(2).height).to eq '12.75'
+  end
+
+  it 'loads the last column' do
+    expect(sheet.last_column).to eq 'C'
+    expect(sheet.last_column(2)).to eq 'D'
   end
 
   it 'loads cells by column' do

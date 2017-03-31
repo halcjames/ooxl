@@ -43,6 +43,12 @@ describe OOXL do
     expect(values.last).to eq ["Very Far", "5"]
   end
 
+  it 'loads row in stream' do 
+    expect(ooxml.sheet('Sheet2').stream_row(2).class ).to be OOXL::Row
+    expect(ooxml.sheet('Sheet2').stream_row(16).class ).to be OOXL::Row
+    expect(ooxml.sheet('Sheet2').stream_row(17).class ).to be NilClass
+  end
+
   it 'loads font' do
     font = ooxml.sheet('Sheet1').font('A1')
     expect(font.class).to be OOXL::Font
