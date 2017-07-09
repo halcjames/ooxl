@@ -63,5 +63,10 @@ describe OOXL do
     expect(fill.bg_color).to eq "FFFF6600"
     expect(fill.fg_color).to eq "FFFF3333"
   end
+
+  it 'loads a comment' do 
+    comment = ooxml.sheet('Sheet1').comment('B1')
+    expect(comment).to eq "Test Comment\n"
+  end
   # will add on the next update
 end

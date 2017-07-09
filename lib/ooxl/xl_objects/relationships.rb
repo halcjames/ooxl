@@ -1,14 +1,19 @@
 class OOXL
   class Relationships
-    SUPPORTED_TYPES = ['http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments']
+    SUPPORTED_TYPES = ['http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments',
+                       'http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet']
     def initialize(relationships_node)
       @types = {}
       parse_relationships(relationships_node)
     end
 
     def comment_id
-      @types['comments']
+      @types['comments'] && @types['comments'].values.first
     end
+
+    def sheet_file_index(relationship_id)
+      @types['worksheet'] && @types['worksheet']["rId#{relationship_id}"]
+    end 
 
     private
     def parse_relationships(relationships_node)
@@ -16,8 +21,10 @@ class OOXL
       relationships_node.xpath('//Relationship').each do |relationship_node|
         relationship_type = relationship_node.attributes["Type"].value
         target = relationship_node.attributes["Target"].value
+        relationship_id = relationship_node.attributes["Id"].value
         if supported_type?(relationship_type)
-          @types[extract_type(relationship_type)] = extract_file_reference(target)
+          @types[extract_type(relationship_type)] ||= {}
+          @types[extract_type(relationship_type)][relationship_id] = extract_file_reference(target)
         end
       end
     end

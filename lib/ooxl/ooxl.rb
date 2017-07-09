@@ -33,13 +33,13 @@ class OOXL
   end
 
   def sheet(sheet_name)
-    sheet_index = @workbook.sheets.index { |sheet| sheet[:name] == sheet_name}
-    raise "No #{sheet_name} in workbook." if sheet_index.nil?
-    sheet = @sheets.fetch((sheet_index+1).to_s)
+    sheet_hash = @workbook.sheets.find { |sheet| sheet[:name] == sheet_name}
+    raise "No #{sheet_name} in workbook." if sheet_hash.nil?
+    sheet = @sheets.fetch(sheet_hash[:sheet_file_index])
 
     # shared variables
     sheet.name = sheet_name
-    sheet.comments = fetch_comments(sheet_index)
+    sheet.comments = fetch_comments(sheet_hash)
     sheet.styles = @styles
     sheet.defined_names = @workbook.defined_names
     sheet
@@ -72,15 +72,15 @@ class OOXL
     sheet(sheet_name).list_values_from_cell_range(cell_range)
   end
 
-  def fetch_comments(sheet_index)
-    final_sheet_index = sheet_index+1
-    relationship = @relationships[final_sheet_index.to_s]
+  def fetch_comments(sheet_hash)
+    relationship = @relationships[sheet_hash[:sheet_file_index].to_s]
     @comments[relationship.comment_id] if relationship.present?
   end
 
   def parse_spreadsheet_contents(spreadsheet)
     shared_strings = []
     Zip::File.open(spreadsheet) do |spreadsheet_zip|
+      sheet_relationships = spreadsheet_zip.find { |entry| entry.name == 'xl/_rels/workbook.xml.rels' }.get_input_stream.read
       spreadsheet_zip.each do |entry|
         case entry.name
         when /xl\/worksheets\/sheet(\d+)?\.xml/
@@ -98,7 +98,8 @@ class OOXL
         when /xl\/tables\/.*?/i
           @tables << OOXL::Table.new(entry.get_input_stream.read)
         when "xl/workbook.xml"
-          @workbook = OOXL::Workbook.load_from_stream(entry.get_input_stream.read)
+           relationship = Relationships.new(sheet_relationships)
+          @workbook = OOXL::Workbook.load_from_stream(entry.get_input_stream.read, relationship)
         when /xl\/worksheets\/_rels\/sheet\d+\.xml\.rels/
           sheet_id = entry.name.scan(/sheet(\d+)/).flatten.first
           @relationships[sheet_id] = Relationships.new(entry.get_input_stream.read)
