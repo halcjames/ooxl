@@ -31,11 +31,11 @@ class OOXL
 
     def cell(cell_id)
       cell_final_id = cell_id[/[A-Z]+\d+/] ? cell_id : "#{cell_id}#{id}"
-      cells_by_id[cell_final_id]
+      cell_id_map[cell_final_id]
     end
 
-    def cells_by_id
-      @cells_by_id ||= cells.each_with_object(Hash.new { |_, k| BlankCell.new(k) }) do |cell, result|
+    def cell_id_map
+      @cell_id_map ||= cells.each_with_object(Hash.new { |_, k| BlankCell.new(k) }) do |cell, result|
         result[cell.id] = cell
       end
     end
