@@ -8,7 +8,7 @@ class OOXL
 
     attr_reader :columns, :data_validations, :shared_strings, :styles
     attr_accessor :comments, :defined_names, :name
-    delegate :[], :each, :rows, :row, to: :row_cache
+    delegate :[], :each, :rows, :row, to: :@row_cache
 
     def initialize(xml_stream, shared_strings, options={})
       @shared_strings = shared_strings
@@ -21,7 +21,7 @@ class OOXL
     end
 
     def code_name
-      @code_name ||= xml.xpath('//sheetPr').attribute('codeName').try(:value)
+      @code_name ||= @xml.xpath('//sheetPr').attribute('codeName').try(:value)
     end
 
     def comment(cell_ref)
@@ -39,7 +39,7 @@ class OOXL
 
     def columns
       @columns ||= begin
-        xml.xpath('//cols/col').map do |column_node|
+        @xml.xpath('//cols/col').map do |column_node|
           Column.load_from_node(column_node)
         end
       end
@@ -88,12 +88,12 @@ class OOXL
       @data_validations ||= begin
 
         # original validations
-        dvalidations = xml.xpath('//dataValidations/dataValidation').map do |data_validation_node|
+        dvalidations = @xml.xpath('//dataValidations/dataValidation').map do |data_validation_node|
           Sheet::DataValidation.load_from_node(data_validation_node)
         end
 
         # extended validations
-        dvalidations_ext = xml.xpath('//extLst//ext//dataValidations/dataValidation').map do |data_validation_node_ext|
+        dvalidations_ext = @xml.xpath('//extLst//ext//dataValidations/dataValidation').map do |data_validation_node_ext|
           Sheet::DataValidation.load_from_node(data_validation_node_ext)
         end
 
@@ -104,7 +104,7 @@ class OOXL
 
     def styles=(styles)
       @styles = styles
-      row_cache.styles = styles
+      @row_cache.styles = styles
     end
 
     # a shortcut for:
@@ -150,7 +150,7 @@ class OOXL
     def list_values_from_rectangle(cell_letters, start_index, end_index)
       start_cell = letter_index(cell_letters.first)
       end_cell = letter_index(cell_letters.last)
-      row_cache.row_range(start_index, end_index).map do |row|
+      @row_cache.row_range(start_index, end_index).map do |row|
         (start_cell..end_cell).map do |cell_index|
 
           cell_letter = letter_equivalent(cell_index)
@@ -160,7 +160,7 @@ class OOXL
     end
 
     def list_values_from_column(column_letter, start_index, end_index)
-      row_cache.row_range(start_index, end_index).map do |row|
+      @row_cache.row_range(start_index, end_index).map do |row|
         row["#{column_letter}#{row.id}"].value
       end
     end
@@ -184,10 +184,8 @@ class OOXL
 
     private
 
-    attr_reader :xml, :row_cache
-
     def merged_cells
-      @merged_cells ||= xml.xpath('//mergeCells/mergeCell').map do |merged_cell|
+      @merged_cells ||= @xml.xpath('//mergeCells/mergeCell').map do |merged_cell|
         # <mergeCell ref="Q381:R381"/>
         start_reference, end_reference = merged_cell.attributes["ref"].try(:value).split(':')
 
