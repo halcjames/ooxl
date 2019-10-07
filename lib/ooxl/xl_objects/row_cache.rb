@@ -4,10 +4,18 @@ class OOXL
 
     attr_accessor :styles
 
+    # built on-demand -- use rows instead
+    attr_reader :row_cache
+
+    # built on-demand -- use fetch_row_by_id instead
+    attr_reader :row_id_map
+
     def initialize(sheet_xml, shared_strings, options = {})
       @shared_strings = shared_strings
       @sheet_xml = sheet_xml
       @options = options
+      @row_cache = []
+      @row_id_map = {}
     end
 
     def [](id)
@@ -41,7 +49,7 @@ class OOXL
 
     private
 
-    def parse_more_rows(&block)
+    def parse_more_rows
       row_nodes.drop(row_cache.count).each do |row_node|
         row = Row.load_from_node(row_node, @shared_strings, @styles, @options)
         row_cache << row
@@ -56,16 +64,6 @@ class OOXL
 
     def row_nodes
       @row_nodes ||= @sheet_xml.xpath('//sheetData/row')
-    end
-
-    # built on-demand -- use rows instead
-    def row_cache
-      @row_cache ||= []
-    end
-
-    # built on-demand -- use fetch_row_by_id instead
-    def row_id_map
-      @row_id_map ||= {}
     end
 
     def fetch_row_by_id(row_id)
