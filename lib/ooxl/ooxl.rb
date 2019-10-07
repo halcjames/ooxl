@@ -38,14 +38,7 @@ class OOXL
     raise "No #{sheet_name} in workbook." if sheet_index.nil?
 
     cache_idx = (sheet_index + 1).to_s
-    sheet = (@sheets[cache_idx] ||= OOXL::Sheet.new(@sheet_contents[cache_idx], @shared_strings, @options))
-
-    # shared variables
-    sheet.name = sheet_name
-    sheet.comments = fetch_comments(sheet_index)
-    sheet.styles = @styles
-    sheet.defined_names = @workbook.defined_names
-    sheet
+    @sheets[cache_idx] ||= load_sheet(sheet_name, cache_idx)
   end
 
   def [](text)
@@ -75,9 +68,8 @@ class OOXL
     sheet(sheet_name).list_values_from_cell_range(cell_range)
   end
 
-  def fetch_comments(sheet_index)
-    final_sheet_index = sheet_index+1
-    relationship = @relationships[final_sheet_index.to_s]
+  def fetch_comments(cache_index)
+    relationship = @relationships[cache_index]
     @comments[relationship.comment_id] if relationship.present?
   end
 
@@ -88,7 +80,7 @@ class OOXL
         case entry.name
         when /xl\/worksheets\/sheet(\d+)?\.xml/
           sheet_id = entry.name.scan(/xl\/worksheets\/sheet(\d+)?\.xml/).flatten.first
-          @sheet_contents[sheet_id] = entry.get_input_stream
+          @sheet_contents[sheet_id] = entry.get_input_stream.read
         when /xl\/styles\.xml/
           @styles = OOXL::Styles.load_from_stream(entry.get_input_stream.read)
         when /xl\/comments(\d+)?\.xml/
@@ -110,5 +102,16 @@ class OOXL
         end
       end
     end
+  end
+
+  private
+
+  def load_sheet(sheet_name, cache_index)
+    sheet = OOXL::Sheet.new(@sheet_contents[cache_index], @shared_strings, @options)
+    sheet.name = sheet_name
+    sheet.comments = fetch_comments(cache_index)
+    sheet.styles = @styles
+    sheet.defined_names = @workbook.defined_names
+    sheet
   end
 end
