@@ -11,12 +11,13 @@ class OOXL
     delegate :[], :each, :rows, :row, to: :row_cache
 
     def initialize(xml_stream, shared_strings, options={})
-      @xml_stream = xml_stream
       @shared_strings = shared_strings
       @comments = {}
       @defined_names = {}
       @styles = []
       @options = options
+      @xml = Nokogiri.XML(xml_stream).remove_namespaces!
+      @row_cache = RowCache.new(@xml, @shared_strings, @options)
     end
 
     def code_name
@@ -183,6 +184,8 @@ class OOXL
 
     private
 
+    attr_reader :xml, :row_cache
+
     def merged_cells
       @merged_cells ||= xml.xpath('//mergeCells/mergeCell').map do |merged_cell|
         # <mergeCell ref="Q381:R381"/>
@@ -192,14 +195,6 @@ class OOXL
         end_column_letter, end_index = end_reference.partition(/\d+/)
         [(start_column_letter..end_column_letter), (start_index..end_index)]
       end.to_h
-    end
-
-    def xml
-      @xml ||= Nokogiri.XML(@xml_stream).remove_namespaces!
-    end
-
-    def row_cache
-      @row_cache ||= RowCache.new(xml, @shared_strings, @options)
     end
   end
 end

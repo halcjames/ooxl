@@ -5,6 +5,7 @@ class OOXL
   
   def initialize(spreadsheet_filepath, options={})
     @workbook = nil
+    @sheet_contents = {}
     @sheets = {}
     @styles = []
     @comments = {}
@@ -35,7 +36,9 @@ class OOXL
   def sheet(sheet_name)
     sheet_index = @workbook.sheets.index { |sheet| sheet[:name] == sheet_name}
     raise "No #{sheet_name} in workbook." if sheet_index.nil?
-    sheet = @sheets.fetch((sheet_index+1).to_s)
+
+    cache_idx = (sheet_index + 1).to_s
+    sheet = (@sheets[cache_idx] ||= OOXL::Sheet.new(@sheet_contents[cache_idx], @shared_strings, @options))
 
     # shared variables
     sheet.name = sheet_name
@@ -79,13 +82,13 @@ class OOXL
   end
 
   def parse_spreadsheet_contents(spreadsheet)
-    shared_strings = []
+    @shared_strings = []
     Zip::File.open(spreadsheet) do |spreadsheet_zip|
       spreadsheet_zip.each do |entry|
         case entry.name
         when /xl\/worksheets\/sheet(\d+)?\.xml/
           sheet_id = entry.name.scan(/xl\/worksheets\/sheet(\d+)?\.xml/).flatten.first
-          @sheets[sheet_id] = OOXL::Sheet.new(entry.get_input_stream, shared_strings, @options)
+          @sheet_contents[sheet_id] = entry.get_input_stream
         when /xl\/styles\.xml/
           @styles = OOXL::Styles.load_from_stream(entry.get_input_stream.read)
         when /xl\/comments(\d+)?\.xml/
@@ -93,7 +96,7 @@ class OOXL
           @comments[comment_id] = OOXL::Comments.load_from_stream(entry.get_input_stream.read)
         when "xl/sharedStrings.xml"
           Nokogiri.XML(entry.get_input_stream.read).remove_namespaces!.xpath('sst/si').each do |shared_string_node|
-            shared_strings << shared_string_node.xpath('r/t|t').map { |value_node| value_node.text}.join('')
+            @shared_strings << shared_string_node.xpath('r/t|t').map { |value_node| value_node.text}.join('')
           end
         when /xl\/tables\/.*?/i
           @tables << OOXL::Table.new(entry.get_input_stream.read)
