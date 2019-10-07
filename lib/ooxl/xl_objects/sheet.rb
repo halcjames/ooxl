@@ -8,20 +8,19 @@ class OOXL
 
     attr_reader :columns, :data_validations, :shared_strings, :styles
     attr_accessor :comments, :defined_names, :name
-    delegate :[], :each, :rows, :row, to: :@row_cache
+    delegate :[], :each, :rows, :row, to: :row_cache
 
-    def initialize(xml, shared_strings, options={})
-      @xml = Nokogiri.XML(xml).remove_namespaces!
+    def initialize(xml_stream, shared_strings, options={})
+      @xml_stream = xml_stream
       @shared_strings = shared_strings
       @comments = {}
       @defined_names = {}
       @styles = []
       @options = options
-      @row_cache = RowCache.new(@xml, @shared_strings, options)
     end
 
     def code_name
-      @code_name ||= @xml.xpath('//sheetPr').attribute('codeName').try(:value)
+      @code_name ||= xml.xpath('//sheetPr').attribute('codeName').try(:value)
     end
 
     def comment(cell_ref)
@@ -39,7 +38,7 @@ class OOXL
 
     def columns
       @columns ||= begin
-        @xml.xpath('//cols/col').map do |column_node|
+        xml.xpath('//cols/col').map do |column_node|
           Column.load_from_node(column_node)
         end
       end
@@ -88,12 +87,12 @@ class OOXL
       @data_validations ||= begin
 
         # original validations
-        dvalidations = @xml.xpath('//dataValidations/dataValidation').map do |data_validation_node|
+        dvalidations = xml.xpath('//dataValidations/dataValidation').map do |data_validation_node|
           Sheet::DataValidation.load_from_node(data_validation_node)
         end
 
         # extended validations
-        dvalidations_ext = @xml.xpath('//extLst//ext//dataValidations/dataValidation').map do |data_validation_node_ext|
+        dvalidations_ext = xml.xpath('//extLst//ext//dataValidations/dataValidation').map do |data_validation_node_ext|
           Sheet::DataValidation.load_from_node(data_validation_node_ext)
         end
 
@@ -104,7 +103,7 @@ class OOXL
 
     def styles=(styles)
       @styles = styles
-      @row_cache.styles = styles
+      row_cache.styles = styles
     end
 
     # a shortcut for:
@@ -150,7 +149,7 @@ class OOXL
     def list_values_from_rectangle(cell_letters, start_index, end_index)
       start_cell = letter_index(cell_letters.first)
       end_cell = letter_index(cell_letters.last)
-      @row_cache.row_range(start_index, end_index).map do |row|
+      row_cache.row_range(start_index, end_index).map do |row|
         (start_cell..end_cell).map do |cell_index|
 
           cell_letter = letter_equivalent(cell_index)
@@ -160,7 +159,7 @@ class OOXL
     end
 
     def list_values_from_column(column_letter, start_index, end_index)
-      @row_cache.row_range(start_index, end_index).map do |row|
+      row_cache.row_range(start_index, end_index).map do |row|
         row["#{column_letter}#{row.id}"].value
       end
     end
@@ -172,20 +171,20 @@ class OOXL
       [row[cell_ref].value]
     end
 
-    def self.load_from_stream(xml_stream, shared_strings)
-      self.new(Nokogiri.XML(xml_stream).remove_namespaces!, shared_strings)
-    end
-
     def in_merged_cells?(cell_id)
       column_letter, column_index = cell_id.partition(/\d+/)
-      range = merged_cells_range.find { |column_range, index_range| column_range.cover?(column_letter) && index_range.cover?(column_index) }
+      range = merged_cells.find { |column_range, index_range| column_range.cover?(column_letter) && index_range.cover?(column_index) }
       range.present?
+    end
+
+    def self.load_from_stream(xml_stream, shared_strings)
+      self.new(xml_stream, shared_strings)
     end
 
     private
 
-    def merged_cells_range
-      @merged_cells ||= @xml.xpath('//mergeCells/mergeCell').map do |merged_cell|
+    def merged_cells
+      @merged_cells ||= xml.xpath('//mergeCells/mergeCell').map do |merged_cell|
         # <mergeCell ref="Q381:R381"/>
         start_reference, end_reference = merged_cell.attributes["ref"].try(:value).split(':')
 
@@ -193,6 +192,14 @@ class OOXL
         end_column_letter, end_index = end_reference.partition(/\d+/)
         [(start_column_letter..end_column_letter), (start_index..end_index)]
       end.to_h
+    end
+
+    def xml
+      @xml ||= Nokogiri.XML(@xml_stream).remove_namespaces!
+    end
+
+    def row_cache
+      @row_cache ||= RowCache.new(xml, @shared_strings, @options)
     end
   end
 end

@@ -85,7 +85,7 @@ class OOXL
         case entry.name
         when /xl\/worksheets\/sheet(\d+)?\.xml/
           sheet_id = entry.name.scan(/xl\/worksheets\/sheet(\d+)?\.xml/).flatten.first
-          @sheets[sheet_id] = OOXL::Sheet.new(entry.get_input_stream.read, shared_strings, @options)
+          @sheets[sheet_id] = OOXL::Sheet.new(entry.get_input_stream, shared_strings, @options)
         when /xl\/styles\.xml/
           @styles = OOXL::Styles.load_from_stream(entry.get_input_stream.read)
         when /xl\/comments(\d+)?\.xml/
