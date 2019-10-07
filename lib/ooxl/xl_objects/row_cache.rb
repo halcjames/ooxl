@@ -47,6 +47,18 @@ class OOXL
       row_cache
     end
 
+    def row_range(start_index, end_index)
+      return enum_for(:row_range, start_index, end_index) unless block_given?
+
+      rows do |row|
+        row_id = row.id.to_i
+        next if row_id < start_index
+        break if row_id > end_index
+
+        yield row
+      end
+    end
+
     private
 
     def parse_more_rows

@@ -148,22 +148,20 @@ class OOXL
     # 3 => end_index
     # Expected output would be: [['value', 'value', 'value'], ['value', 'value', 'value'], ['value', 'value', 'value']]
     def list_values_from_rectangle(cell_letters, start_index, end_index)
-      start_index.upto(end_index).map do |row_index|
-        (letter_index(cell_letters.first)..letter_index(cell_letters.last)).map do |cell_index|
-          row = row(row_index)
-          next if row.blank?
+      start_cell = letter_index(cell_letters.first)
+      end_cell = letter_index(cell_letters.last)
+      @row_cache.row_range(start_index, end_index).map do |row|
+        (start_cell..end_cell).map do |cell_index|
 
           cell_letter = letter_equivalent(cell_index)
-          row["#{cell_letter}#{row_index}"].value
+          row["#{cell_letter}#{row.id}"].value
         end
       end
     end
 
     def list_values_from_column(column_letter, start_index, end_index)
-      (start_index..end_index).to_a.map do |row_index|
-        row = row(row_index)
-        next if row.blank?
-        row["#{column_letter}#{row_index}"].value
+      @row_cache.row_range(start_index, end_index).map do |row|
+        row["#{column_letter}#{row.id}"].value
       end
     end
 
