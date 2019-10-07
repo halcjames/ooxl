@@ -171,7 +171,7 @@ class OOXL
       row_index = cell_ref.gsub(/[^\d:]/, '').split(':').map(&:to_i).first
       row = row(row_index)
       return if row.blank?
-      [row[cell_range].value]
+      [row[cell_ref].value]
     end
 
     def self.load_from_stream(xml_stream, shared_strings)

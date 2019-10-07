@@ -88,8 +88,8 @@ class OOXL
           real_rows_yielded += 1
         end
 
-        yield row if block_given?
         yielded_rows << row
+        yield row if block_given?
 
         break if real_rows_yielded == row_cache.count && all_rows_loaded?
       end
