@@ -5,7 +5,6 @@ class OOXL
   
   def initialize(spreadsheet_filepath, options={})
     @workbook = nil
-    @sheet_contents = {}
     @sheets = {}
     @styles = []
     @comments = {}
@@ -36,9 +35,14 @@ class OOXL
   def sheet(sheet_name)
     sheet_index = @workbook.sheets.index { |sheet| sheet[:name] == sheet_name}
     raise "No #{sheet_name} in workbook." if sheet_index.nil?
+    sheet = @sheets.fetch((sheet_index+1).to_s)
 
-    cache_idx = (sheet_index + 1).to_s
-    @sheets[cache_idx] ||= load_sheet(sheet_name, cache_idx)
+    # shared variables
+    sheet.name = sheet_name
+    sheet.comments = fetch_comments(sheet_index)
+    sheet.styles = @styles
+    sheet.defined_names = @workbook.defined_names
+    sheet
   end
 
   def [](text)
@@ -68,19 +72,20 @@ class OOXL
     sheet(sheet_name).list_values_from_cell_range(cell_range)
   end
 
-  def fetch_comments(cache_index)
-    relationship = @relationships[cache_index]
+  def fetch_comments(sheet_index)
+    final_sheet_index = sheet_index+1
+    relationship = @relationships[final_sheet_index.to_s]
     @comments[relationship.comment_id] if relationship.present?
   end
 
   def parse_spreadsheet_contents(spreadsheet)
-    @shared_strings = []
+    shared_strings = []
     Zip::File.open(spreadsheet) do |spreadsheet_zip|
       spreadsheet_zip.each do |entry|
         case entry.name
         when /xl\/worksheets\/sheet(\d+)?\.xml/
           sheet_id = entry.name.scan(/xl\/worksheets\/sheet(\d+)?\.xml/).flatten.first
-          @sheet_contents[sheet_id] = entry.get_input_stream.read
+          @sheets[sheet_id] = OOXL::Sheet.new(entry.get_input_stream.read, shared_strings, @options)
         when /xl\/styles\.xml/
           @styles = OOXL::Styles.load_from_stream(entry.get_input_stream.read)
         when /xl\/comments(\d+)?\.xml/
@@ -88,7 +93,7 @@ class OOXL
           @comments[comment_id] = OOXL::Comments.load_from_stream(entry.get_input_stream.read)
         when "xl/sharedStrings.xml"
           Nokogiri.XML(entry.get_input_stream.read).remove_namespaces!.xpath('sst/si').each do |shared_string_node|
-            @shared_strings << shared_string_node.xpath('r/t|t').map { |value_node| value_node.text}.join('')
+            shared_strings << shared_string_node.xpath('r/t|t').map { |value_node| value_node.text}.join('')
           end
         when /xl\/tables\/.*?/i
           @tables << OOXL::Table.new(entry.get_input_stream.read)
@@ -102,16 +107,5 @@ class OOXL
         end
       end
     end
-  end
-
-  private
-
-  def load_sheet(sheet_name, cache_index)
-    sheet = OOXL::Sheet.new(@sheet_contents[cache_index], @shared_strings, @options)
-    sheet.name = sheet_name
-    sheet.comments = fetch_comments(cache_index)
-    sheet.styles = @styles
-    sheet.defined_names = @workbook.defined_names
-    sheet
   end
 end
