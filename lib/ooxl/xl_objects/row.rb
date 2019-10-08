@@ -10,20 +10,18 @@ class OOXL
     end
 
     def [](id)
-      cell = if id.is_a?(String)
-        cells.find { |row| row.id == id}
+      if id.is_a?(String)
+        cell(id)
       else
-        cells[id]
+        cells[id] || BlankCell.new(id)
       end
-      (cell.present?) ? cell : BlankCell.new(id)
     end
 
     def cells
       if @options[:padded_cells]
         unless @cells.blank?
           'A'.upto(@cells.last.column).map do |column_letter|
-            cell = @cells.find { |cell| cell.column == column_letter}
-            (cell.blank?) ? BlankCell.new("#{column_letter}#{id}") : cell
+            cell(column_letter)
           end
         end
       else
@@ -32,8 +30,14 @@ class OOXL
     end
 
     def cell(cell_id)
-      cell_final_id = cell_id[/[A-Z]{1,}\d+/] ? cell_id : "#{cell_id}#{id}"
-      cells.find { |cell| cell.id == cell_final_id}
+      cell_final_id = cell_id[/[A-Z]+\d+/] ? cell_id : "#{cell_id}#{id}"
+      cell_id_map[cell_final_id]
+    end
+
+    def cell_id_map
+      @cell_id_map ||= cells.each_with_object(Hash.new { |_, k| BlankCell.new(k) }) do |cell, result|
+        result[cell.id] = cell
+      end
     end
 
     def each

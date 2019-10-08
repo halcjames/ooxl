@@ -1,10 +1,14 @@
 require_relative 'sheet/data_validation'
+require_relative 'row_cache'
+
 class OOXL
   class Sheet
     include OOXL::Util
     include Enumerable
-    attr_reader :columns, :data_validations, :shared_strings
-    attr_accessor :comments, :styles, :defined_names, :name
+
+    attr_reader :columns, :data_validations, :shared_strings, :styles
+    attr_accessor :comments, :defined_names, :name
+    delegate :[], :each, :rows, :row, to: :@row_cache
 
     def initialize(xml, shared_strings, options={})
       @xml = Nokogiri.XML(xml).remove_namespaces!
@@ -12,8 +16,8 @@ class OOXL
       @comments = {}
       @defined_names = {}
       @styles = []
-      @loaded_cache = {}
       @options = options
+      @row_cache = RowCache.new(@xml, @shared_strings, options)
     end
 
     def code_name
@@ -41,82 +45,35 @@ class OOXL
       end
     end
 
-    def [](id)
-      if id.is_a?(String)
-        rows.find { |row| row.id == id}
-      else
-        rows[id]
-      end
-    end
 
-    def row(index, stream: false)
-      if @loaded_cache[:rows] || !stream
-        rows.find { |row| row.id == index.to_s}
-      else
-        found_row = nil
-        rows do |row|
-          if row.id == index.to_s
-            found_row = row
-            break
-          end
-        end
-        found_row
-      end
-    end
-
+    # DEPRECATED: stream is no longer separate
     def stream_row(index)
-      row(index, stream: true)
+      row(index)
     end
 
     # test mode
     def cells_by_column(column_letter)
-      columns = []
-      rows.each do |row|
-        columns << row.cells.find { |cell| to_column_letter(cell.id) == column_letter}
+      rows.map do |row|
+        row.cells.find { |cell| to_column_letter(cell.id) == column_letter}
       end
-      columns
     end
 
     def last_column(row_index=1)
       @last_column ||= {}
       @last_column[row_index] ||= begin
-        cells = stream_row(row_index).try(:cells) 
+        cells = row(row_index).try(:cells) 
         cells.last.column if cells.present?
       end
     end
 
-    def cell(cell_id, stream: false)
+    def cell(cell_id)
       column_letter, row_index = cell_id.partition(/\d+/)
-      current_row = row(row_index, stream: stream)
+      current_row = row(row_index)
       current_row.cell(column_letter) unless current_row.nil?
     end
 
-    def formula(cell_id, stream: false)
-      cell(cell_id, stream: stream).try(:formula)
-    end
-
-    def rows
-      @rows ||= begin
-        all_rows = @xml.xpath('//sheetData/row').map do |row_node|
-          row = Row.load_from_node(row_node, @shared_strings, @styles, @options)
-          yield row if block_given?
-          row
-        end
-        @loaded_cache[:rows] = true
-        all_rows
-      end
-    end
-
-    def each
-      if @options[:padded_rows]
-        last_row_index = rows.last.id.to_i
-        (1.upto(last_row_index)).each do |row_index|
-          row = row(row_index)
-          yield (row.blank?) ? Row.new(id: "#{row_index}", cells: []) : row
-        end
-      else
-        rows  { |row| yield row }
-      end
+    def formula(cell_id)
+      cell(cell_id).try(:formula)
     end
 
     def font(cell_reference)
@@ -126,7 +83,6 @@ class OOXL
     def fill(cell_reference)
       cell(cell_reference).try(:fill)
     end
-
 
     def data_validations
       @data_validations ||= begin
@@ -144,6 +100,11 @@ class OOXL
         # merge validations
         [dvalidations, dvalidations_ext].flatten.compact
       end
+    end
+
+    def styles=(styles)
+      @styles = styles
+      @row_cache.styles = styles
     end
 
     # a shortcut for:
@@ -168,39 +129,50 @@ class OOXL
       if cell_range.include?(":")
         cell_letters = cell_range.gsub(/[\d]/, '').split(':')
         start_index, end_index = cell_range[/[A-Z]{1,}\d+/] ? cell_range.gsub(/[^\d:]/, '').split(':').map(&:to_i) : [1, rows.size]
-        # This will allow values from this pattern
-        # 'SheetName!A1:C3'
-        # The number after the cell letter will be the index
-        # 1 => start_index
-        # 3 => end_index
-        # Expected output would be: [['value', 'value', 'value'], ['value', 'value', 'value'], ['value', 'value', 'value']]
         if cell_letters.uniq.size > 1
-          start_index.upto(end_index).map do  |row_index|
-            (letter_index(cell_letters.first)..letter_index(cell_letters.last)).map do |cell_index|
-                row = fetch_row_by_id(row_index.to_s)
-                next if row.blank?
-
-                cell_letter = letter_equivalent(cell_index)
-                row["#{cell_letter}#{row_index}"].value
-            end
-          end
+          list_values_from_rectangle(cell_letters, start_index, end_index)
         else
-          cell_letter = cell_letters.uniq.first
-          (start_index..end_index).to_a.map do |row_index|
-            row = fetch_row_by_id(row_index.to_s)
-            next if row.blank?
-            row["#{cell_letter}#{row_index}"].value
-          end
+          list_values_from_column(cell_letters.uniq.first, start_index, end_index)
         end
       else
         # when only one value: B2
-        row_index = cell_range.gsub(/[^\d:]/, '').split(':').map(&:to_i).first
-        row = fetch_row_by_id(row_index.to_s)
-        return if row.blank?
-        [row[cell_range].value]
+        list_values_from_cell(cell_range)
       end
     end
     alias_method :list_values_from_formula, :list_values_from_cell_range
+
+    # This will allow values from this pattern
+    # 'SheetName!A1:C3'
+    # The number after the cell letter will be the index
+    # 1 => start_index
+    # 3 => end_index
+    # Expected output would be: [['value', 'value', 'value'], ['value', 'value', 'value'], ['value', 'value', 'value']]
+    def list_values_from_rectangle(cell_letters, start_index, end_index)
+      start_index.upto(end_index).map do |row_index|
+        (letter_index(cell_letters.first)..letter_index(cell_letters.last)).map do |cell_index|
+          row = row(row_index)
+          next if row.blank?
+
+          cell_letter = letter_equivalent(cell_index)
+          row["#{cell_letter}#{row_index}"].value
+        end
+      end
+    end
+
+    def list_values_from_column(column_letter, start_index, end_index)
+      (start_index..end_index).to_a.map do |row_index|
+        row = row(row_index)
+        next if row.blank?
+        row["#{column_letter}#{row_index}"].value
+      end
+    end
+
+    def list_values_from_cell(cell_ref)
+      row_index = cell_ref.gsub(/[^\d:]/, '').split(':').map(&:to_i).first
+      row = row(row_index)
+      return if row.blank?
+      [row[cell_ref].value]
+    end
 
     def self.load_from_stream(xml_stream, shared_strings)
       self.new(Nokogiri.XML(xml_stream).remove_namespaces!, shared_strings)
@@ -213,9 +185,6 @@ class OOXL
     end
 
     private
-    def fetch_row_by_id(row_id)
-      rows.find { |row| row.id == row_id.to_s}
-    end
 
     def merged_cells_range
       @merged_cells ||= @xml.xpath('//mergeCells/mergeCell').map do |merged_cell|
