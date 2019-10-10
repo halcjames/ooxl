@@ -10,14 +10,14 @@ class OOXL
     attr_accessor :comments, :defined_names, :name
     delegate :[], :each, :rows, :row, to: :@row_cache
 
-    def initialize(xml_stream, shared_strings, options={})
+    def initialize(xml, shared_strings, options={})
+      @xml = Nokogiri.XML(xml).remove_namespaces!
       @shared_strings = shared_strings
       @comments = {}
       @defined_names = {}
       @styles = []
       @options = options
-      @xml = Nokogiri.XML(xml_stream).remove_namespaces!
-      @row_cache = RowCache.new(@xml, @shared_strings, @options)
+      @row_cache = RowCache.new(@xml, @shared_strings, options)
     end
 
     def code_name
