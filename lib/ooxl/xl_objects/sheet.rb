@@ -128,7 +128,7 @@ class OOXL
       # cell_range values separated by comma
       if cell_range.include?(":")
         cell_letters = cell_range.gsub(/[\d]/, '').split(':')
-        start_index, end_index = cell_range[/[A-Z]{1,}\d+/] ? cell_range.gsub(/[^\d:]/, '').split(':').map(&:to_i) : [1, rows.size]
+        start_index, end_index = cell_range[/[A-Z]{1,}\d+/] ? cell_range.gsub(/[^\d:]/, '').split(':').map(&:to_i) : [1, @row_cache.max_row_index]
         if cell_letters.uniq.size > 1
           list_values_from_rectangle(cell_letters, start_index, end_index)
         else
