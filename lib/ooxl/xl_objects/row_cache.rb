@@ -10,6 +10,8 @@ class OOXL
     # built on-demand -- use fetch_row_by_id instead
     attr_reader :row_id_map
 
+    delegate :size, to: :row_nodes
+
     def initialize(sheet_xml, shared_strings, options = {})
       @shared_strings = shared_strings
       @sheet_xml = sheet_xml
@@ -47,11 +49,33 @@ class OOXL
       row_cache
     end
 
+    def row_range(start_index, end_index)
+      return enum_for(:row_range, start_index, end_index) unless block_given?
+
+      rows do |row|
+        row_id = row.id.to_i
+        next if row_id < start_index
+        break if row_id > end_index
+
+        yield row
+      end
+    end
+
+    def max_row_index
+      return 0 if row_nodes.empty?
+
+      if all_rows_loaded?
+        row_cache.last.id.to_i
+      else
+        Row.extract_id(row_nodes.last).to_i
+      end
+    end
+
     private
 
     def parse_more_rows
       row_nodes.drop(row_cache.count).each do |row_node|
-        row = Row.load_from_node(row_node, @shared_strings, @styles, @options)
+        row = parse_row(row_node)
         row_cache << row
         row_id_map[row.id] = row
         yield row if block_given?
@@ -60,10 +84,6 @@ class OOXL
 
     def all_rows_loaded?
       row_cache.count == row_nodes.count
-    end
-
-    def row_nodes
-      @row_nodes ||= @sheet_xml.xpath('//sheetData/row')
     end
 
     def fetch_row_by_id(row_id)
@@ -94,6 +114,14 @@ class OOXL
         break if real_rows_yielded == row_cache.count && all_rows_loaded?
       end
       yielded_rows
+    end
+
+    def row_nodes
+      @row_nodes ||= @sheet_xml.xpath('//sheetData/row')
+    end
+
+    def parse_row(row_node)
+      Row.load_from_node(row_node, @shared_strings, @styles, @options)
     end
   end
 end

@@ -45,11 +45,15 @@ class OOXL
     end
 
     def self.load_from_node(row_node, shared_strings, styles, options)
-      new(id: row_node.attributes["r"].try(:value),
+      new(id: extract_id(row_node),
           spans: row_node.attributes["spans"].try(:value),
           height: row_node.attributes["ht"].try(:value),
           cells: row_node.xpath('c').map {  |cell_node| OOXL::Cell.load_from_node(cell_node, shared_strings, styles)},
           options: options )
+    end
+
+    def self.extract_id(row_node)
+      row_node.attributes["r"].try(:value)
     end
   end
 end

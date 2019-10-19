@@ -1,12 +1,13 @@
 class OOXL
   module Util
-    COLUMN_LETTERS = ('A'..'ZZZZ').to_a
-    def letter_equivalent(index)
-      COLUMN_LETTERS.fetch(index)
+    COLUMN_LETTERS = [nil] + ('A'..'ZZZZ').to_a
+
+    def letter_index(col_letter)
+      column_letter_to_number(col_letter) - 1
     end
 
-    def letter_index(letter)
-      COLUMN_LETTERS.index { |c_letter| c_letter == letter}
+    def letter_equivalent(col_index)
+      column_number_to_letter(col_index + 1)
     end
 
     def to_column_letter(reference)
@@ -14,11 +15,15 @@ class OOXL
     end
 
     def uniform_reference(ref)
-      ref.to_s[/[A-Z]/] ? letter_index(ref) + 1 : ref
+      ref.to_s[/[A-Z]/] ? column_letter_to_number(ref) : ref
     end
 
     def node_value_extractor(node)
       node.try(:value)
+    end
+
+    def column_number_to_letter(index)
+      COLUMN_LETTERS.fetch(index)
     end
 
     def column_letter_to_number(column_letter)
