@@ -33,9 +33,11 @@ class OOXL
   end
 
   def sheet(sheet_name)
-    sheet_index = @workbook.sheets.index { |sheet| sheet[:name] == sheet_name}
-    raise "No #{sheet_name} in workbook." if sheet_index.nil?
-    sheet = @sheets.fetch((sheet_index+1).to_s)
+    sheet_meta = @workbook.sheets.find { |sheet| sheet[:name] == sheet_name }
+    raise "No #{sheet_name} in workbook." if sheet_meta.nil?
+
+    sheet_index = sheet_meta[:sheet_id]
+    sheet = @sheets.fetch(sheet_index)
 
     # shared variables
     sheet.name = sheet_name
@@ -73,8 +75,7 @@ class OOXL
   end
 
   def fetch_comments(sheet_index)
-    final_sheet_index = sheet_index+1
-    relationship = @relationships[final_sheet_index.to_s]
+    relationship = @relationships[sheet_index]
     @comments[relationship.comment_id] if relationship.present?
   end
 
