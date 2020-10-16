@@ -3,7 +3,7 @@ class OOXL
   include ListHelper
   attr_reader :filename
   
-  def initialize(spreadsheet_filepath, options={})
+  def initialize(filepath = nil, contents: nil, **options)
     @workbook = nil
     @sheets = {}
     @styles = []
@@ -11,12 +11,24 @@ class OOXL
     @relationships = {}
     @options = options
     @tables = []
-    @filename = File.basename(spreadsheet_filepath)
-    parse_spreadsheet_contents(spreadsheet_filepath)
+
+    @filename = filepath && File.basename(filepath)
+    if contents.present?
+      parse_spreadsheet_contents(contents)
+    elsif filepath.present?
+      parse_spreadsheet_file(filepath)
+    else
+      raise 'no file path or contents were provided'
+    end
   end
 
   def self.open(spreadsheet_filepath, options={})
-    new(spreadsheet_filepath, options)
+    new(spreadsheet_filepath, **options)
+  end
+
+  def self.parse(spreadsheet_contents, options={})
+    spreadsheet_contents.force_encoding('ASCII-8BIT') if spreadsheet_contents.respond_to?(:force_encoding)
+    new(nil, contents: spreadsheet_contents, **options)
   end
 
   def sheets(skip_hidden: false)
@@ -79,33 +91,40 @@ class OOXL
     @comments[relationship.comment_id] if relationship.present?
   end
 
-  def parse_spreadsheet_contents(spreadsheet)
+  def parse_spreadsheet_file(file_path)
+    Zip::File.open(file_path) { |zip| parse_zip(zip) }
+  end
+
+  def parse_spreadsheet_contents(file_contents)
+    # open_buffer works for strings and IO streams
+    Zip::File.open_buffer(file_contents) { |zip| parse_zip(zip) }
+  end
+
+  def parse_zip(spreadsheet_zip)
     shared_strings = []
-    Zip::File.open(spreadsheet) do |spreadsheet_zip|
-      spreadsheet_zip.each do |entry|
-        case entry.name
-        when /xl\/worksheets\/sheet(\d+)?\.xml/
-          sheet_id = entry.name.scan(/xl\/worksheets\/sheet(\d+)?\.xml/).flatten.first
-          @sheets[sheet_id] = OOXL::Sheet.new(entry.get_input_stream.read, shared_strings, @options)
-        when /xl\/styles\.xml/
-          @styles = OOXL::Styles.load_from_stream(entry.get_input_stream.read)
-        when /xl\/comments(\d+)?\.xml/
-          comment_id = entry.name.scan(/xl\/comments(\d+)\.xml/).flatten.first
-          @comments[comment_id] = OOXL::Comments.load_from_stream(entry.get_input_stream.read)
-        when "xl/sharedStrings.xml"
-          Nokogiri.XML(entry.get_input_stream.read).remove_namespaces!.xpath('sst/si').each do |shared_string_node|
-            shared_strings << shared_string_node.xpath('r/t|t').map { |value_node| value_node.text}.join('')
-          end
-        when /xl\/tables\/.*?/i
-          @tables << OOXL::Table.new(entry.get_input_stream.read)
-        when "xl/workbook.xml"
-          @workbook = OOXL::Workbook.load_from_stream(entry.get_input_stream.read)
-        when /xl\/worksheets\/_rels\/sheet\d+\.xml\.rels/
-          sheet_id = entry.name.scan(/sheet(\d+)/).flatten.first
-          @relationships[sheet_id] = Relationships.new(entry.get_input_stream.read)
-        else
-          # unsupported for now..
+    spreadsheet_zip.each do |entry|
+      case entry.name
+      when /xl\/worksheets\/sheet(\d+)?\.xml/
+        sheet_id = entry.name.scan(/xl\/worksheets\/sheet(\d+)?\.xml/).flatten.first
+        @sheets[sheet_id] = OOXL::Sheet.new(entry.get_input_stream.read, shared_strings, @options)
+      when /xl\/styles\.xml/
+        @styles = OOXL::Styles.load_from_stream(entry.get_input_stream.read)
+      when /xl\/comments(\d+)?\.xml/
+        comment_id = entry.name.scan(/xl\/comments(\d+)\.xml/).flatten.first
+        @comments[comment_id] = OOXL::Comments.load_from_stream(entry.get_input_stream.read)
+      when "xl/sharedStrings.xml"
+        Nokogiri.XML(entry.get_input_stream.read).remove_namespaces!.xpath('sst/si').each do |shared_string_node|
+          shared_strings << shared_string_node.xpath('r/t|t').map { |value_node| value_node.text}.join('')
         end
+      when /xl\/tables\/.*?/i
+        @tables << OOXL::Table.new(entry.get_input_stream.read)
+      when "xl/workbook.xml"
+        @workbook = OOXL::Workbook.load_from_stream(entry.get_input_stream.read)
+      when /xl\/worksheets\/_rels\/sheet\d+\.xml\.rels/
+        sheet_id = entry.name.scan(/sheet(\d+)/).flatten.first
+        @relationships[sheet_id] = Relationships.new(entry.get_input_stream.read)
+      else
+        # unsupported for now..
       end
     end
   end
