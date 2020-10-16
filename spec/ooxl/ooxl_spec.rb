@@ -63,5 +63,22 @@ describe OOXL do
     expect(fill.bg_color).to eq "FFFF6600"
     expect(fill.fg_color).to eq "FFFF3333"
   end
-  # will add on the next update
+
+  context "loading from stream" do
+    let(:ooxml) { OOXL.parse(File.open('spec/ooxl/resources/test.xlsx')) }
+
+    it 'loads' do
+      # sanity check -- if it parsed the sheets, we know it loaded successfully
+      expect(ooxml.sheets).to eq ['Sheet1', 'Sheet2', 'Hidden']
+    end
+  end
+
+  context "loading from string contents" do
+    let(:ooxml) { OOXL.parse(File.read('spec/ooxl/resources/test.xlsx')) }
+
+    it 'loads' do
+      # sanity check -- if it parsed the sheets, we know it loaded successfully
+      expect(ooxml.sheets).to eq ['Sheet1', 'Sheet2', 'Hidden']
+    end
+  end
 end
