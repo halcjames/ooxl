@@ -8,7 +8,8 @@ class OOXL
     @sheets = {}
     @styles = []
     @comments = {}
-    @relationships = {}
+    @workbook_relationships = nil
+    @sheet_relationships = {}
     @options = options
     @tables = []
 
@@ -48,7 +49,7 @@ class OOXL
     sheet_meta = @workbook.sheets.find { |sheet| sheet[:name] == sheet_name }
     raise "No #{sheet_name} in workbook." if sheet_meta.nil?
 
-    sheet_index = sheet_meta[:sheet_id]
+    sheet_index = @workbook_relationships[sheet_meta[:relationship_id]].scan(/\d+/).first
     sheet = @sheets.fetch(sheet_index)
 
     # shared variables
@@ -87,7 +88,7 @@ class OOXL
   end
 
   def fetch_comments(sheet_index)
-    relationship = @relationships[sheet_index]
+    relationship = @sheet_relationships[sheet_index]
     @comments[relationship.comment_id] if relationship.present?
   end
 
@@ -122,7 +123,9 @@ class OOXL
         @workbook = OOXL::Workbook.load_from_stream(entry.get_input_stream.read)
       when /xl\/worksheets\/_rels\/sheet\d+\.xml\.rels/
         sheet_id = entry.name.scan(/sheet(\d+)/).flatten.first
-        @relationships[sheet_id] = Relationships.new(entry.get_input_stream.read)
+        @sheet_relationships[sheet_id] = Relationships.new(entry.get_input_stream.read)
+      when /xl\/_rels\/workbook\.xml\.rels/
+        @workbook_relationships = Relationships.new(entry.get_input_stream.read)
       else
         # unsupported for now..
       end
