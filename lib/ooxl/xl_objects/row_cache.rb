@@ -83,7 +83,7 @@ class OOXL
     end
 
     def all_rows_loaded?
-      row_cache.count == row_nodes.count
+      row_cache.size == row_nodes.size
     end
 
     def fetch_row_by_id(row_id)
