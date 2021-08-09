@@ -117,7 +117,7 @@ class OOXL
     end
 
     def row_nodes
-      @row_nodes ||= @sheet_xml.xpath('//sheetData/row')
+      @row_nodes ||= @sheet_xml.xpath('//sheetData/row')&.to_a
     end
 
     def parse_row(row_node)
