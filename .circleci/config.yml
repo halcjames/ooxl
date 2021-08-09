@@ -2,7 +2,9 @@ version: 2.1
 
 # Define the jobs we want to run for this project
 jobs:
-  test:
+  build:
+    docker:
+      - image: cimg/ruby:2.4-node
     steps:
       - checkout
       - restore_cache:
