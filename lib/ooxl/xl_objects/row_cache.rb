@@ -83,7 +83,7 @@ class OOXL
     end
 
     def all_rows_loaded?
-      row_cache.size == row_nodes.size
+      row_cache.count == row_nodes.count
     end
 
     def fetch_row_by_id(row_id)
@@ -117,7 +117,7 @@ class OOXL
     end
 
     def row_nodes
-      @row_nodes ||= @sheet_xml.xpath('//sheetData/row')
+      @row_nodes ||= @sheet_xml.xpath('//sheetData/row')&.to_a
     end
 
     def parse_row(row_node)
