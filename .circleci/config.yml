@@ -4,7 +4,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: cimg/ruby:2.4-node
+      - image: salsify/ruby_ci:2.4.2
     steps:
       - checkout
       - restore_cache:
