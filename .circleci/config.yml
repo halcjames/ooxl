@@ -1,0 +1,28 @@
+version: 2.1
+
+# Define the jobs we want to run for this project
+jobs:
+  build:
+    docker:
+      - image: circleci/<language>:<version TAG>
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+    steps:
+      - run: echo "this is the build job"
+  test:
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-ooxl-gems-{{ checksum "Gemfile.lock" }}
+            - v1-ooxl-gems
+      - run:
+          name: Install Gems
+          command: bundle check --path=vendor/bundle || bundle install --path=vendor/bundle --jobs=4 --retry=3
+      - run:
+          name: Run Tests
+          command: bundle exec rspec --format progress
+      - run:
+          name: Run Rubocop
+          command: bundle exec rubocop
