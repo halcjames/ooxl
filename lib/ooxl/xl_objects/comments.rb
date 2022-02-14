@@ -14,7 +14,7 @@ class OOXL
       comment_xml =Nokogiri.XML(comment_xml).remove_namespaces!
 
       comments = comment_xml.xpath("//comments/commentList/comment").map do |comment_node|
-        comment_text_node = comment_node.xpath('./text/r/t')
+        comment_text_node = comment_node.xpath('./text/r/t').presence || comment_node.xpath('./text/t')
 
         value = if comment_text_node.is_a?(Array)
           comment_text_node.map { |comment_text_node| comment_text_node.text }.join('')
